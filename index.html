@@ -1,0 +1,2526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Shukan's Complete Fitness Plan</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  
+  <style>
+    :root {
+      /* Palette */
+      --color-bg-pure: #000000;
+      --color-card-bg: rgba(18, 18, 22, 0.75);
+      --color-card-border: rgba(255, 255, 255, 0.08);
+      --color-card-border-glow: rgba(255, 255, 255, 0.15);
+      
+      --color-primary: #2e5bff;
+      --color-secondary: #9d50ff;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-danger: #ef4444;
+      
+      --color-text-primary: #e5e2e1;
+      --color-text-secondary: #9497a1;
+      --color-text-muted: #5e616b;
+      
+      /* Gradients */
+      --grad-primary: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      --grad-success: linear-gradient(135deg, #059669, var(--color-success));
+      --grad-card: linear-gradient(135deg, rgba(25, 25, 30, 0.55), rgba(10, 10, 12, 0.75));
+      
+      /* Custom Easing from Emil Kowalski guidelines */
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--color-bg-pure);
+      color: var(--color-text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Background Ambient Glows */
+    .bg-glow-1 {
+      position: fixed;
+      top: -10%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      border-radius: var(--radius-full);
+      background: var(--color-secondary);
+      filter: blur(140px);
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-glow-2 {
+      position: fixed;
+      bottom: 10%;
+      left: -20%;
+      width: 400px;
+      height: 400px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      filter: blur(140px);
+      opacity: 0.1;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Mobile Shell */
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+      padding-bottom: 90px; /* Space for bottom navigation */
+    }
+
+    /* Premium Sticky Header */
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--color-card-border);
+      padding: 18px 20px;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .profile-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      box-shadow: 0 0 15px rgba(157, 80, 255, 0.2);
+    }
+
+    /* Main Scrollable View */
+    .content-view {
+      padding: 20px;
+      flex: 1;
+    }
+
+    /* Screen Sections with Transitions (Emil Kowalski rule: custom curve, snappy, no scale(0)) */
+    .section {
+      display: none;
+      animation: tabEnter 220ms var(--ease-out) forwards;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    @keyframes tabEnter {
+      from {
+        opacity: 0;
+        transform: scale(0.97) translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* Glassmorphic Cards */
+    .card {
+      background: var(--grad-card);
+      border: 1px solid var(--color-card-border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      transition: border-color 200ms var(--ease-out);
+    }
+
+    .card:hover {
+      border-color: var(--color-card-border-glow);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: -0.01em;
+    }
+
+    .card-title i {
+      font-size: 18px;
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Pill Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-primary { background: rgba(46, 91, 255, 0.15); color: #8fa5ff; border: 0.5px solid rgba(46, 91, 255, 0.3); }
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 0.5px solid rgba(16, 185, 129, 0.3); }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 0.5px solid rgba(245, 158, 11, 0.3); }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 0.5px solid rgba(239, 68, 68, 0.3); }
+
+    /* Tactile Press Active Scale (Emil Kowalski Guidelines) */
+    .active-scale {
+      transition: transform 140ms var(--ease-out), background-color 140ms var(--ease-out), opacity 140ms var(--ease-out);
+      cursor: pointer;
+    }
+
+    .active-scale:active {
+      transform: scale(0.96) !important;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    /* Stats Dashboard Widgets */
+    .stat-widget {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 85px;
+    }
+
+    .stat-widget .label {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-widget .value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-top: 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-widget .sub {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* Structured Rows */
+    .row-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .row-item:last-child {
+      border-bottom: none;
+    }
+
+    .row-icon-box {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--color-primary);
+    }
+
+    .row-details {
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .row-details b {
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    .row-details p {
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Tabs bottom navigation - Sized down to fit 6 tabs cleanly */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 72px;
+      background: rgba(10, 10, 12, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--color-card-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 4px;
+      z-index: 1000;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      width: 58px;
+      height: 52px;
+      border-radius: var(--radius-md);
+      gap: 3px;
+    }
+
+    .nav-btn i {
+      font-size: 18px;
+      transition: color 150ms var(--ease-out);
+    }
+
+    .nav-btn span {
+      font-size: 9px;
+      font-weight: 500;
+      transition: color 150ms var(--ease-out);
+    }
+
+    .nav-btn.active {
+      color: var(--color-text-primary);
+    }
+
+    .nav-btn.active i {
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Calorie / Protein trackers */
+    .progress-radial-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .progress-circle-box {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-circle-box svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .progress-circle-box circle {
+      fill: none;
+      stroke-width: 8;
+    }
+
+    .progress-circle-box .bg-ring {
+      stroke: rgba(255, 255, 255, 0.05);
+    }
+
+    .progress-circle-box .fill-ring {
+      stroke: url(#progressGradient);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 300ms var(--ease-out);
+    }
+
+    .progress-text {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .progress-text .val {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .progress-text .lbl {
+      font-size: 9px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-top: 1px;
+    }
+
+    /* Sliding Progress Bars */
+    .bar-container {
+      margin-top: 10px;
+    }
+
+    .bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .bar-bg {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--grad-primary);
+      border-radius: var(--radius-full);
+      width: 0%;
+      transition: width 400ms var(--ease-out);
+    }
+
+    /* Custom scroll view for Workout/Day Selection */
+    .scroll-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+      margin-bottom: 16px;
+      mask-image: linear-gradient(to right, black 85%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
+
+    .scroll-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .day-pill {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: center;
+      min-width: 60px;
+    }
+
+    .day-pill .name {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .day-pill .short {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .day-pill.active {
+      background: rgba(46, 91, 255, 0.12);
+      border-color: var(--color-primary);
+    }
+
+    .day-pill.active .name {
+      color: var(--color-primary);
+    }
+
+    .day-pill.active .short {
+      color: var(--color-text-primary);
+    }
+
+    .day-pill.rest.active {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: var(--color-danger);
+    }
+
+    .day-pill.rest.active .name {
+      color: var(--color-danger);
+    }
+
+    /* List Checklist Items (snappy checking animation) */
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      transition: all 160ms var(--ease-out);
+    }
+
+    .checklist-item.checked {
+      border-color: rgba(16, 185, 129, 0.25);
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    /* Checkbox Styles */
+    .chk-box {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 150ms var(--ease-out);
+      color: transparent;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .checklist-item.checked .chk-box {
+      background-color: var(--color-success);
+      border-color: var(--color-success);
+      color: #000;
+    }
+
+    .chk-box i {
+      font-weight: 900;
+    }
+
+    .checklist-label {
+      flex: 1;
+      font-size: 13px;
+      color: var(--color-text-primary);
+      transition: color 150ms;
+    }
+
+    .checklist-item.checked .checklist-label {
+      color: var(--color-text-secondary);
+      text-decoration: line-through;
+    }
+
+    /* Exercise Set Grid */
+    .set-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-sm);
+      margin-top: 6px;
+      font-size: 12px;
+      transition: all 160ms;
+    }
+
+    .set-row.done {
+      border-color: rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    .set-num {
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .set-row.done .set-num {
+      color: var(--color-success);
+    }
+
+    .set-reps {
+      color: var(--color-text-muted);
+    }
+
+    .set-check {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1.5px solid var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: transparent;
+      font-size: 10px;
+    }
+
+    .set-row.done .set-check {
+      background: var(--color-success);
+      border-color: var(--color-success);
+      color: #000;
+    }
+
+    /* Floating Rest Timer */
+    .timer-fab {
+      position: fixed;
+      bottom: 96px;
+      right: 20px;
+      background: var(--grad-primary);
+      border: none;
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 8px 24px rgba(46, 91, 255, 0.4);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      z-index: 900;
+      cursor: pointer;
+    }
+
+    .timer-overlay {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .timer-display {
+      font-size: 72px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 24px;
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .timer-btns {
+      display: flex;
+      gap: 12px;
+    }
+
+    .timer-btn {
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-text-primary);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .timer-btn-primary {
+      background: var(--grad-primary);
+      border: none;
+    }
+
+    /* Hydration UI */
+    .water-tracker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+    }
+
+    .water-glasses {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .glass-icon {
+      font-size: 24px;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: transform 150ms var(--ease-out), color 150ms;
+    }
+
+    .glass-icon.full {
+      color: #60a5fa;
+      filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.5));
+    }
+
+    .glass-icon:active {
+      transform: scale(0.85);
+    }
+
+    .water-count {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    /* Macro indicators style */
+    .macro-bar {
+      margin-bottom: 12px;
+    }
+
+    .macro-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .macro-label {
+      color: var(--color-text-secondary);
+    }
+
+    .macro-val {
+      font-weight: 600;
+    }
+
+    /* Interactive Protein Calculator */
+    .calc-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .calc-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .calc-select {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .calc-result {
+      background: rgba(46, 91, 255, 0.1);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8fa5ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 80px;
+    }
+
+    /* Timeline and graph */
+    .timeline-container {
+      position: relative;
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+
+    .timeline-container::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .timeline-node {
+      position: relative;
+      margin-bottom: 24px;
+      cursor: pointer;
+    }
+
+    .timeline-node::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 5px;
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-full);
+      background: var(--color-text-muted);
+      border: 2px solid var(--color-bg-pure);
+      transition: all 160ms;
+    }
+
+    .timeline-node.active::before {
+      background: var(--color-secondary);
+      box-shadow: 0 0 8px var(--color-secondary);
+      transform: scale(1.2);
+    }
+
+    .timeline-node.completed::before {
+      background: var(--color-success);
+    }
+
+    .timeline-heading {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    .timeline-desc {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+
+    /* Canvas Graph style */
+    .canvas-container {
+      margin-top: 14px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    canvas {
+      width: 100%;
+      height: 140px;
+      display: block;
+    }
+
+    /* Input controls */
+    .btn {
+      width: 100%;
+      background: var(--grad-primary);
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 13px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 15px rgba(157, 80, 255, 0.25);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--color-text-primary);
+      box-shadow: none;
+    }
+
+    .action-links {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .action-link {
+      flex: 1;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      text-align: center;
+      color: var(--color-text-secondary);
+      text-decoration: none;
+    }
+
+    /* Section Label for Sub-Headers inside Lists */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      margin: 14px 0 8px;
+    }
+
+    /* Grocery Specific Styling */
+    .grocery-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      transition: all 160ms var(--ease-out);
+    }
+
+    .grocery-row.checked {
+      border-color: rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.03);
+    }
+
+    .grocery-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .grocery-label span.name {
+      font-size: 13px;
+      color: var(--color-text-primary);
+      font-weight: 500;
+      transition: color 150ms;
+    }
+
+    .grocery-row.checked span.name {
+      color: var(--color-text-muted);
+      text-decoration: line-through;
+    }
+
+    .grocery-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .grocery-qty {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      text-align: right;
+    }
+
+    .grocery-cost {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      min-width: 50px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG Gradient definition for radial progress rings -->
+  <svg style="width:0;height:0;position:absolute;" aria-hidden="true">
+    <defs>
+      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="var(--color-primary)" />
+        <stop offset="100%" stop-color="var(--color-secondary)" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Background Glowing Orbs -->
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <div class="app-container">
+    
+    <!-- Sticky App Header -->
+    <header>
+      <h1><i class="ti ti-flame"></i> SHUKAN CORE</h1>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="header-weight-lbl" style="font-size:11px; color:var(--color-text-secondary); font-weight:600;">56 kg</span>
+        <div class="profile-badge">SS</div>
+      </div>
+    </header>
+
+    <div class="content-view">
+      
+      <!-- ==================== OVERVIEW SECTION ==================== -->
+      <div id="overview" class="section active">
+        <!-- Main Stats Rings -->
+        <div class="card">
+          <div class="card-title">Daily Intake Goals <span class="badge badge-primary">Standard</span></div>
+          <div class="progress-radial-container">
+            <div class="progress-circle-box">
+              <svg>
+                <circle class="bg-ring" cx="45" cy="45" r="38"></circle>
+                <circle id="kcal-ring" class="fill-ring" cx="45" cy="45" r="38" stroke-dasharray="238.76" stroke-dashoffset="238.76"></circle>
+              </svg>
+              <div class="progress-text">
+                <span class="val" id="kcal-total-val">0</span>
+                <span class="lbl">/2800 kcal</span>
+              </div>
+            </div>
+            <div class="progress-circle-box">
+              <svg>
+                <circle class="bg-ring" cx="45" cy="45" r="38"></circle>
+                <circle id="protein-ring" class="fill-ring" cx="45" cy="45" r="38" stroke-dasharray="238.76" stroke-dashoffset="238.76"></circle>
+              </svg>
+              <div class="progress-text">
+                <span class="val" id="protein-total-val">0g</span>
+                <span class="lbl">/150g prot</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weight Target Dashboard -->
+        <div class="card">
+          <div class="card-title">Weight Milestones <span class="badge badge-success" id="weight-percent-badge">0%</span></div>
+          <div class="bar-container" style="margin-bottom:6px;">
+            <div class="bar-header">
+              <span style="color:var(--color-text-secondary); font-weight:500;">56 kg (Start)</span>
+              <span id="current-weight-display" style="font-weight:700; color:var(--color-secondary);">56.0 kg</span>
+              <span style="color:var(--color-text-secondary); font-weight:500;">70 kg (Goal)</span>
+            </div>
+            <div class="bar-bg">
+              <div id="weight-progress-bar" class="bar-fill" style="width: 0%"></div>
+            </div>
+          </div>
+          <div style="font-size:12px; color:var(--color-text-secondary); margin-top:8px; line-height:1.4;" id="weight-remaining-lbl">
+            Remaining target: +14.0 kg to build lean muscle naturally.
+          </div>
+        </div>
+
+        <!-- Stat Grid -->
+        <div class="grid-2">
+          <div class="stat-widget">
+            <span class="label">Current Weight</span>
+            <span class="value" id="widget-weight">56 kg</span>
+            <span class="sub" id="widget-bmi">BMI 19.4 — lean</span>
+          </div>
+          <div class="stat-widget">
+            <span class="label">Target Weight</span>
+            <span class="value">70 kg</span>
+            <span class="sub">+14 kg lean muscle</span>
+          </div>
+          <div class="stat-widget">
+            <span class="label">Daily Target</span>
+            <span class="value">2,800+ kcal</span>
+            <span class="sub">140–160g protein/day</span>
+          </div>
+          <div class="stat-widget">
+            <span class="label">Gym Frequency</span>
+            <span class="value">5–6 days</span>
+            <span class="sub">PPL × 2 structural split</span>
+          </div>
+          <div class="stat-widget">
+            <span class="label">Monthly Budget</span>
+            <span class="value">₹500</span>
+            <span class="sub">Whey protein focus</span>
+          </div>
+          <div class="stat-widget">
+            <span class="label">Est. Timeframe</span>
+            <span class="value">12–18 mo</span>
+            <span class="sub">Natural, clean bulk</span>
+          </div>
+        </div>
+
+        <!-- Key Pillars -->
+        <div class="card">
+          <div class="card-title">Three Pillars of Success</div>
+          
+          <div class="row-item">
+            <div class="row-icon-box"><i class="ti ti-barbell"></i></div>
+            <div class="row-details">
+              <b>Train Smart & Recover</b>
+              <p>PPL 6 days, progressive overload, sleep 7-8 hrs minimum. Muscle is built during recovery, not in the gym.</p>
+            </div>
+          </div>
+          
+          <div class="row-item">
+            <div class="row-icon-box" style="color:var(--color-secondary);"><i class="ti ti-salad"></i></div>
+            <div class="row-details">
+              <b>Vegetarian Surplus</b>
+              <p>At 56 kg you likely eat under 2,200 kcal/day. You need 2,700–3,000 kcal to grow. Pure veg fits this easily with planning.</p>
+            </div>
+          </div>
+          
+          <div class="row-item">
+            <div class="row-icon-box" style="color:var(--color-success);"><i class="ti ti-sparkles"></i></div>
+            <div class="row-details">
+              <b>Skin & Hydration</b>
+              <p>80% skin clarity is gut health and hydration. Keep your garlic empty-stomach habit, and add mild sunscreen.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- split switch warning -->
+        <div class="card">
+          <div class="card-title">PPL Split vs. Double Split <i class="ti ti-info-circle"></i></div>
+          <div style="font-size:13px; color:var(--color-text-secondary); line-height:1.5;">
+            Your current split is solid. However, PPL (Push-Pull-Legs) organizes workouts by <b>movement patterns</b> rather than isolation, reducing muscle overlap and optimizing joint recovery. PPL is highly recommended for building structural volume to move from 56 → 70 kg. If you stick with the double split, ensure recovery times are kept consistent.
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== WORKOUT SECTION ==================== -->
+      <div id="workout" class="section">
+        <!-- Horizontal Scroll Weekday Selector -->
+        <div class="scroll-row" id="workout-day-row">
+          <div class="day-pill active active-scale" onclick="selectWorkoutDay('mon')">
+            <div class="name">Mon</div><div class="short">Push A</div>
+          </div>
+          <div class="day-pill active-scale" onclick="selectWorkoutDay('tue')">
+            <div class="name">Tue</div><div class="short">Pull A</div>
+          </div>
+          <div class="day-pill active-scale" onclick="selectWorkoutDay('wed')">
+            <div class="name">Wed</div><div class="short">Legs A</div>
+          </div>
+          <div class="day-pill active-scale" onclick="selectWorkoutDay('thu')">
+            <div class="name">Thu</div><div class="short">Push B</div>
+          </div>
+          <div class="day-pill active-scale" onclick="selectWorkoutDay('fri')">
+            <div class="name">Fri</div><div class="short">Pull B</div>
+          </div>
+          <div class="day-pill active-scale" onclick="selectWorkoutDay('sat')">
+            <div class="name">Sat</div><div class="short">Legs B</div>
+          </div>
+          <div class="day-pill rest active-scale" onclick="selectWorkoutDay('sun')">
+            <div class="name">Sun</div><div class="short">Rest</div>
+          </div>
+        </div>
+
+        <!-- Selected Workout Description -->
+        <div class="card">
+          <div class="card-title">
+            <span id="workout-name-lbl">Push A — Chest / Shoulder / Tricep</span>
+            <span class="badge badge-primary" id="workout-count-badge">7 Exercises</span>
+          </div>
+          
+          <!-- Workout Completion Meter -->
+          <div class="bar-container" style="margin-bottom:12px;">
+            <div class="bar-bg">
+              <div id="workout-progress" class="bar-fill" style="width: 0%; background:var(--grad-primary);"></div>
+            </div>
+          </div>
+          
+          <div id="workout-exercise-list">
+            <!-- Dynamically Populated -->
+          </div>
+        </div>
+
+        <!-- Overload Rules -->
+        <div class="card">
+          <div class="card-title">Overload & Rest Protocols</div>
+          <div class="row-item">
+            <div class="row-icon-box"><i class="ti ti-arrow-up-circle"></i></div>
+            <div class="row-details">
+              <b>Top of Rep Range Rule</b>
+              <p>When you hit the maximum reps (e.g. 8 reps in a 6-8 range) with good form for 2 consecutive sessions, increase the weight by 2.5 kg next time.</p>
+            </div>
+          </div>
+          <div class="row-item">
+            <div class="row-icon-box" style="color:var(--color-warning);"><i class="ti ti-hourglass-high"></i></div>
+            <div class="row-details">
+              <b>Rest Intervals</b>
+              <p>Rest <b>2–3 minutes</b> for heavy compound lifts (squat, bench, deadlift). Rest <b>60–90 seconds</b> for accessory/isolation lifts.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== DIET SECTION ==================== -->
+      <div id="diet" class="section">
+        <!-- Daily Macro Targets -->
+        <div class="card">
+          <div class="card-title">Macronutrient Targets <span class="badge badge-primary">Surplus</span></div>
+          
+          <div class="macro-bar">
+            <div class="macro-info">
+              <span class="macro-label">Protein (Goal: 150g)</span>
+              <span class="macro-val" id="diet-protein-lbl">0g</span>
+            </div>
+            <div class="bar-bg"><div id="diet-protein-bar" class="bar-fill" style="width:0%;"></div></div>
+          </div>
+
+          <div class="macro-bar">
+            <div class="macro-info">
+              <span class="macro-label">Carbs (Goal: 350g)</span>
+              <span class="macro-val" id="diet-carbs-lbl">0g</span>
+            </div>
+            <div class="bar-bg"><div id="diet-carbs-bar" class="bar-fill" style="width:0%; background:var(--color-secondary);"></div></div>
+          </div>
+
+          <div class="macro-bar">
+            <div class="macro-info">
+              <span class="macro-label">Fats (Goal: 70g)</span>
+              <span class="macro-val" id="diet-fats-lbl">0g</span>
+            </div>
+            <div class="bar-bg"><div id="diet-fats-bar" class="bar-fill" style="width:0%; background:var(--color-warning);"></div></div>
+          </div>
+        </div>
+
+        <!-- Interactive Meals Checklist -->
+        <div class="card">
+          <div class="card-title">Full Day Meals <span class="badge badge-success" id="meals-checked-badge">0/6 Completed</span></div>
+          
+          <div id="meals-list">
+            <!-- Dynamically populated to hook up macros -->
+          </div>
+        </div>
+
+        <!-- Soya Chunks Protein Calculator -->
+        <div class="card">
+          <div class="card-title">Protein / Macro Calculator <i class="ti ti-calculator"></i></div>
+          <div style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px;">
+            Calculate metrics for popular vegetarian protein staples instantly:
+          </div>
+          <div class="calc-row">
+            <input type="number" id="calc-qty" class="calc-input" value="100" min="0" oninput="calculateProtein()">
+            <select id="calc-food" class="calc-select" onchange="calculateProtein()">
+              <option value="soya">Soya Chunks</option>
+              <option value="paneer">Paneer</option>
+              <option value="lentils">Lentils (Dry)</option>
+              <option value="milk">Full Fat Milk (ml)</option>
+              <option value="peanut">Peanut Butter</option>
+            </select>
+            <div class="calc-result" id="calc-result-lbl">52.0g P</div>
+          </div>
+        </div>
+
+        <!-- Budget Supplements -->
+        <div class="card">
+          <div class="card-title">Budget Supplement Strategy <span class="badge badge-warning">₹500/mo focus</span></div>
+          <div class="row-item">
+            <div class="row-icon-box"><i class="ti ti-basket"></i></div>
+            <div class="row-details">
+              <b>Whey Protein Focus (ROI Purchase)</b>
+              <p>Invest ₹400–450 for raw whey (AS-IT-IS, HK Vitals, or Bigmuscles). 1 scoop post-workout provides 25g easy protein.</p>
+            </div>
+          </div>
+          <div class="row-item">
+            <div class="row-icon-box" style="color:var(--color-secondary);"><i class="ti ti-bolt"></i></div>
+            <div class="row-details">
+              <b>Creatine Monohydrate</b>
+              <p>Add cheap creatine monohydrate (AS-IT-IS) when budget allows. 5g daily. No loading needed. Promotes raw muscle hydration.</p>
+            </div>
+          </div>
+          <div class="row-item">
+            <div class="row-icon-box" style="color:var(--color-success);"><i class="ti ti-check"></i></div>
+            <div class="row-details">
+              <b>Vegetarian Whole Food Staples</b>
+              <p>Keep these stocked: Milk (3-4 glasses/day), curd, paneer, sprouted moong, dal, rajma, and soya chunks.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GROCERY SECTION ==================== -->
+      <div id="grocery" class="section">
+        <!-- Dashboard stats for shopping -->
+        <div class="card">
+          <div class="card-title">Monthly Shopping Overview <span class="badge badge-success" id="grocery-progress-badge">0% Bought</span></div>
+          <div class="stat-row">
+            <div class="stat" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);">
+              <div class="stat-label">Estimated Cost</div>
+              <div class="stat-value" id="grocery-total-cost">₹0</div>
+              <div class="stat-sub" id="grocery-spent-sub">Spent: ₹0</div>
+            </div>
+            <div class="stat" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);">
+              <div class="stat-label">Remaining Cost</div>
+              <div class="stat-value" id="grocery-remaining-cost">₹0</div>
+              <div class="stat-sub">Dry + Perishables</div>
+            </div>
+            <div class="stat" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);">
+              <div class="stat-label">Items Left</div>
+              <div class="stat-value" id="grocery-items-left">0</div>
+              <div class="stat-sub">From list of 32</div>
+            </div>
+          </div>
+          
+          <div class="bar-container">
+            <div class="bar-bg">
+              <div id="grocery-bar" class="bar-fill" style="width: 0%; background:var(--grad-primary);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Category lists will be appended here -->
+        <div id="grocery-categories-container"></div>
+
+        <!-- Reset Button -->
+        <div style="margin: 8px 0 16px;">
+          <button class="btn btn-secondary active-scale" onclick="resetGroceries()"><i class="ti ti-refresh"></i> Reset Shopping Checklist</button>
+        </div>
+        
+        <div class="card">
+          <div class="card-title">Shopping Hacks & Pricing Note</div>
+          <div style="font-size:12px; color:var(--color-text-secondary); line-height:1.6;">
+            Prices are estimated Mumbai market rates (June 2026). Staples like rice, wheat, spices, and ghee may already exist at home—deduct them to save cost.
+          </div>
+          <div class="action-links" style="margin-top:10px;">
+            <button class="action-link active-scale" onclick="alert('Meal Prep Tip: Cook beans (rajma, chole) in large batches and freeze. Paneer and milk should be fresh weekly. Pre-soak almonds and moong sprouts daily.')">Meal Prep Tips ↗</button>
+            <button class="action-link active-scale" onclick="alert('Stay Under ₹2000: Deduct Paneer (₹520) and replace with Soya Chunks and Double Curd. Buy loose legumes instead of brands. Whey can be skipped in tight budget months.')">Under ₹2000 List ↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SKINCARE SECTION ==================== -->
+      <div id="skin" class="section">
+        <!-- Water Tracker (Interactive Hydration Widget) -->
+        <div class="card">
+          <div class="card-title">Water Log (3+ Liters) <span class="badge badge-primary" id="water-progress-badge">0.0L</span></div>
+          <div class="water-tracker">
+            <div class="water-glasses" id="water-glasses-grid">
+              <!-- JS will build 12 glasses (250ml each = 3L) -->
+            </div>
+            <span class="water-count" id="water-count-lbl">0 / 12 Glasses completed</span>
+            <div style="display:flex; gap:8px; width:100%;">
+              <button class="btn active-scale" onclick="addWater()"><i class="ti ti-plus"></i> Add Glass</button>
+              <button class="btn btn-secondary active-scale" onclick="resetWater()"><i class="ti ti-refresh"></i> Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Morning Skincare Routine -->
+        <div class="card">
+          <div class="card-title">Morning Protocol <span class="badge badge-success" id="skin-m-badge">0/4</span></div>
+          
+          <div class="checklist-item active-scale" onclick="toggleRoutine('m1')">
+            <div class="chk-box" id="routine-m1-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>1. Cold Water Rinse</b>
+              <p style="font-size:11px; color:var(--color-text-muted); margin-top:2px;">Immediately after waking to tighten pores and refresh skin.</p>
+            </div>
+          </div>
+          
+          <div class="checklist-item active-scale" onclick="toggleRoutine('m2')">
+            <div class="chk-box" id="routine-m2-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>2. Garlic + Water Habit</b>
+              <p style="font-size:11px; color:var(--color-text-muted); margin-top:2px;">1 small raw garlic slice empty stomach. Contains allicin to clear bacteria from inside.</p>
+            </div>
+          </div>
+
+          <div class="checklist-item active-scale" onclick="toggleRoutine('m3')">
+            <div class="chk-box" id="routine-m3-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>3. Post-Workout Face Wash</b>
+              <p style="font-size:11px; color:var(--color-text-muted); margin-top:2px;">Wash within 20 mins of ending training (Himalaya neem or Cetaphil). Prevents sweat acne.</p>
+            </div>
+          </div>
+
+          <div class="checklist-item active-scale" onclick="toggleRoutine('m4')">
+            <div class="chk-box" id="routine-m4-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>4. Moisturiser & SPF 50</b>
+              <p style="font-size:11px; color:var(--color-text-muted); margin-top:2px;">Non-negotiable for camera work. Prevents sun-induced dark marks and uneven tone.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Night Skincare Routine -->
+        <div class="card">
+          <div class="card-title">Night Protocol <span class="badge badge-success" id="skin-n-badge">0/3</span></div>
+
+          <div class="checklist-item active-scale" onclick="toggleRoutine('n1')">
+            <div class="chk-box" id="routine-n1-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>1. Gentle Cleanser Wash</b>
+              <p style="font-size:11px; color:var(--color-text-muted); margin-top:2px;">Clear dirt, dust, and pollution before sleeping.</p>
+            </div>
+          </div>
+
+          <div class="checklist-item active-scale" onclick="toggleRoutine('n2')">
+            <div class="chk-box" id="routine-n2-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>2. Raw Honey Face Pack</b>
+              <p style="font-size:11px; color:var(--color-text-muted); margin-top:2px;">Apply 10 mins, rinse. Do this 3×/week. Natural antibacterial & brightness properties.</p>
+            </div>
+          </div>
+
+          <div class="checklist-item active-scale" onclick="toggleRoutine('n3')">
+            <div class="chk-box" id="routine-n3-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>3. Aloe Vera Gel / Coconut Oil</b>
+              <p style="font-size:11px; color:var(--color-text-muted); margin-top:2px;">Aloe vera (fresh plant preferred) acts as a weightless acne-preventing night mask.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Habits for Skin -->
+        <div class="card">
+          <div class="card-title">Dietary Guidelines for Skin Health</div>
+          <div class="row-item">
+            <div class="row-icon-box"><i class="ti ti-droplet"></i></div>
+            <div class="row-details">
+              <b>Ghee (1 tbsp daily)</b>
+              <p>Rich in fat-soluble vitamins (A, D, E, K) for active skin glow and tissue repair.</p>
+            </div>
+          </div>
+          <div class="row-item">
+            <div class="row-icon-box" style="color:var(--color-warning);"><i class="ti ti-sun"></i></div>
+            <div class="row-details">
+              <b>Turmeric & Curcumin</b>
+              <p>Natural anti-inflammatory present in dal/sabzi. Reduces active breakouts.</p>
+            </div>
+          </div>
+          <div class="row-item">
+            <div class="row-icon-box" style="color:var(--color-danger);"><i class="ti ti-ban"></i></div>
+            <div class="row-details">
+              <b>Avoid Dairy Milk if Acne Spikes</b>
+              <p>If acne flares up frequently, reduce liquid milk and shift to fermented curd/dahi.</p>
+            </div>
+          </div>
+          <div class="row-item">
+            <div class="row-icon-box" style="color:var(--color-primary);"><i class="ti ti-moon"></i></div>
+            <div class="row-details">
+              <b>Sleep Schedule (9:30 PM - 10:00 PM)</b>
+              <p>Skin cells regenerate during 10 PM - 2 AM. Lack of sleep spikes cortisol, causing breakouts.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TIMELINE SECTION ==================== -->
+      <div id="timeline" class="section">
+        
+        <!-- Milestones timeline -->
+        <div class="card">
+          <div class="card-title">Milestones Tracker</div>
+          <div class="timeline-container">
+            <div class="timeline-node active" id="node-m1" onclick="selectMilestone(1)">
+              <div class="timeline-heading">Month 1–2: Adaptation Phase</div>
+              <div class="timeline-desc">Adaptation to PPL volume. Newbie lift strength gains. Target weight: 56 → 59–60 kg. First signs of skin clearing.</div>
+            </div>
+            <div class="timeline-node" id="node-m2" onclick="selectMilestone(2)">
+              <div class="timeline-heading">Month 3–5: Visual Density</div>
+              <div class="timeline-desc">Visibly denser shoulders, chest, arms. Target weight: 61–64 kg. Squat 80kg+, Bench 70kg+, Deadlift 100kg+.</div>
+            </div>
+            <div class="timeline-node" id="node-m3" onclick="selectMilestone(3)">
+              <div class="timeline-heading">Month 6–9: Athletic Frame</div>
+              <div class="timeline-desc">Physique shift from skinny to lean-athletic. Target weight: 64–67 kg. Visual definition improvements.</div>
+            </div>
+            <div class="timeline-node" id="node-m4" onclick="selectMilestone(4)">
+              <div class="timeline-heading">Month 12–18: Target physique</div>
+              <div class="timeline-desc">Achieve 70 kg target with clean definition. Proportional, camera-ready natural aesthetic.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weight Logger & Canvas Graph -->
+        <div class="card">
+          <div class="card-title">Weight Log History</div>
+          <div class="calc-row">
+            <input type="number" id="weight-log-val" class="calc-input" value="56.0" step="0.1" min="40" max="100">
+            <button class="btn active-scale" style="flex:0.6; padding: 0 16px;" onclick="logWeight()">Log Weight</button>
+          </div>
+          <div class="canvas-container">
+            <canvas id="weight-chart"></canvas>
+          </div>
+          <div style="text-align:right; margin-top:8px;">
+            <button class="btn btn-secondary active-scale" style="display:inline-flex; width:auto; padding:6px 12px; font-size:11px;" onclick="clearWeightHistory()"><i class="ti ti-trash"></i> Reset Graph</button>
+          </div>
+        </div>
+
+        <!-- Check-in Habit cards -->
+        <div class="card">
+          <div class="card-title">Weekly Routine Check-In</div>
+          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc1')">
+            <div class="chk-box" id="timelinecheck-tc1-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>Sunday Morning Weigh-In</b>
+              <p style="font-size:11px; color:var(--color-text-muted);">Weight yourself empty stomach. If stagnant 2 weeks, add 200 cal (another glass of milk + roti).</p>
+            </div>
+          </div>
+          
+          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc2')">
+            <div class="chk-box" id="timelinecheck-tc2-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>Monthly Progress Photo</b>
+              <p style="font-size:11px; color:var(--color-text-muted);">Same lighting, same time. A real visual indicator of structural change.</p>
+            </div>
+          </div>
+
+          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc3')">
+            <div class="chk-box" id="timelinecheck-tc3-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>Progressive Overload Log</b>
+              <p style="font-size:11px; color:var(--color-text-muted);">Ensure bench/squat/deadlift parameters are moving up over time.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick AI action buttons -->
+        <div class="action-links">
+          <button class="action-link active-scale" onclick="alert('Protein Tip: Soya chunks, chickpeas, sprouted moong, paneer, and milk are your core vegetarian protein generators. If budget is tight, focus on doubling soya chunks (52% raw protein) and full fat milk.')">Protein Hacks ↗</button>
+          <button class="action-link active-scale" onclick="alert('Weight Stagnation: If your weight has not increased in 2-3 weeks, you are not in a surplus. Immediately add 200 calories (e.g. 1 peanut butter toast or 1 additional roti and curd).')">Not Gaining? ↗</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sticky Bottom Navigation Bar (Updated for 6 Tabs) -->
+    <div class="bottom-nav">
+      <button class="nav-btn active active-scale" id="btn-overview" onclick="switchTab('overview')">
+        <i class="ti ti-layout-dashboard"></i>
+        <span>Overview</span>
+      </button>
+      <button class="nav-btn active-scale" id="btn-workout" onclick="switchTab('workout')">
+        <i class="ti ti-barbell"></i>
+        <span>Workout</span>
+      </button>
+      <button class="nav-btn active-scale" id="btn-diet" onclick="switchTab('diet')">
+        <i class="ti ti-salad"></i>
+        <span>Diet</span>
+      </button>
+      <button class="nav-btn active-scale" id="btn-grocery" onclick="switchTab('grocery')">
+        <i class="ti ti-shopping-cart"></i>
+        <span>Grocery</span>
+      </button>
+      <button class="nav-btn active-scale" id="btn-skin" onclick="switchTab('skin')">
+        <i class="ti ti-sparkles"></i>
+        <span>Skin</span>
+      </button>
+      <button class="nav-btn active-scale" id="btn-timeline" onclick="switchTab('timeline')">
+        <i class="ti ti-calendar"></i>
+        <span>Timeline</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Interactive Rest Timer UI -->
+  <button class="timer-fab active-scale" onclick="openTimer()"><i class="ti ti-alarm"></i></button>
+
+  <div class="timer-overlay" id="timer-modal">
+    <div class="timer-display" id="timer-num">90</div>
+    <div style="font-size:14px; color:var(--color-text-secondary); margin-bottom:32px; font-weight:500;" id="timer-status">Rest Timer</div>
+    <div class="timer-btns">
+      <button class="timer-btn active-scale" onclick="addTimerSeconds(-30)">-30s</button>
+      <button class="timer-btn active-scale" onclick="addTimerSeconds(30)">+30s</button>
+    </div>
+    <div class="timer-btns" style="margin-top:16px;">
+      <button class="timer-btn timer-btn-primary active-scale" id="timer-toggle-btn" onclick="toggleTimer()">Start</button>
+      <button class="timer-btn active-scale" onclick="closeTimer()">Close</button>
+    </div>
+  </div>
+
+  <!-- State logic & data -->
+  <script>
+    // Master data
+    const workouts = {
+      mon: {
+        title: "Push A — Chest / Shoulder / Tricep",
+        list: [
+          { name: "Flat Barbell Bench Press", sets: 4, reps: "6–8" },
+          { name: "Incline Dumbbell Press", sets: 3, reps: "8–10" },
+          { name: "Overhead Press (barbell or DB)", sets: 3, reps: "8–10" },
+          { name: "Lateral Raises", sets: 4, reps: "15–20" },
+          { name: "Cable Fly or Pec Deck", sets: 3, reps: "12–15" },
+          { name: "Tricep Pushdown", sets: 3, reps: "12–15" },
+          { name: "Overhead Tricep Extension", sets: 3, reps: "12–15" }
+        ]
+      },
+      tue: {
+        title: "Pull A — Back / Bicep / Rear Delt",
+        list: [
+          { name: "Deadlift", sets: 4, reps: "4–6" },
+          { name: "Pull-ups or Lat Pulldown", sets: 4, reps: "8–10" },
+          { name: "Seated Cable Row", sets: 3, reps: "10–12" },
+          { name: "Face Pulls", sets: 3, reps: "15–20" },
+          { name: "Barbell Curl", sets: 3, reps: "10–12" },
+          { name: "Hammer Curl", sets: 3, reps: "12–15" }
+        ]
+      },
+      wed: {
+        title: "Legs A — Quad dominant",
+        list: [
+          { name: "Barbell Squat", sets: 4, reps: "6–8" },
+          { name: "Leg Press", sets: 4, reps: "10–12" },
+          { name: "Leg Extension", sets: 3, reps: "12–15" },
+          { name: "Walking Lunges", sets: 3, reps: "10/leg" },
+          { name: "Standing Calf Raise", sets: 4, reps: "15–20" }
+        ]
+      },
+      thu: {
+        title: "Push B — Shoulder / Chest / Tricep",
+        list: [
+          { name: "Seated DB Shoulder Press", sets: 4, reps: "8–10" },
+          { name: "Incline Bench Press", sets: 3, reps: "8–10" },
+          { name: "Arnold Press", sets: 3, reps: "10–12" },
+          { name: "Cable Lateral Raise", sets: 3, reps: "15" },
+          { name: "Chest Dips (weighted)", sets: 3, reps: "8–10" },
+          { name: "Skull Crushers", sets: 3, reps: "10–12" }
+        ]
+      },
+      fri: {
+        title: "Pull B — Back width / Bicep",
+        list: [
+          { name: "Wide Grip Pull-up", sets: 4, reps: "max reps" },
+          { name: "Single Arm DB Row", sets: 4, reps: "10/arm" },
+          { name: "T-Bar or Cable Row", sets: 3, reps: "10–12" },
+          { name: "Straight Arm Pulldown", sets: 3, reps: "15" },
+          { name: "Incline DB Curl", sets: 3, reps: "10–12" },
+          { name: "Cable Curl + Reverse Curl", sets: 2, reps: "15 each" }
+        ]
+      },
+      sat: {
+        title: "Legs B — Hamstring / Glute / Calf",
+        list: [
+          { name: "Romanian Deadlift", sets: 4, reps: "8–10" },
+          { name: "Leg Curl (machine)", sets: 4, reps: "10–12" },
+          { name: "Bulgarian Split Squat", sets: 3, reps: "8/leg" },
+          { name: "Hip Thrust", sets: 4, reps: "12" },
+          { name: "Seated Calf Raise", sets: 4, reps: "20" }
+        ]
+      },
+      sun: {
+        title: "Rest + Walk 20 min",
+        list: []
+      }
+    };
+
+    const meals = [
+      { id: "meal1", time: "5:00 AM", title: "Banana + soaked almonds", kcal: 200, protein: 4, carbs: 40, fats: 5, desc: "2 bananas + 8–10 soaked almonds. Garlic slice with water." },
+      { id: "meal2", time: "7:30 AM", title: "Paneer bhurji + roti + milk", kcal: 650, protein: 45, carbs: 70, fats: 20, desc: "100g paneer scrambled + 3 wheat rotis + 300ml full-fat milk." },
+      { id: "meal3", time: "11:00 AM", title: "Curd (dahi) + chivda / poha", kcal: 350, protein: 15, carbs: 60, fats: 8, desc: "1 cup thick curd + 1 bowl poha or chivda." },
+      { id: "meal4", time: "1:30 PM", title: "Dal + sabzi + 3–4 rotis + rice", kcal: 850, protein: 40, carbs: 120, fats: 18, desc: "1 bowl thick dal + sabzi with chickpeas + 3-4 rotis + 1 cup rice + 1 tbsp ghee." },
+      { id: "meal5", time: "4:30 PM", title: "Sprouted moong or roasted chana", kcal: 250, protein: 15, carbs: 40, fats: 2, desc: "100g sprouted moong with lemon/salt OR 50g roasted chana." },
+      { id: "meal6", time: "8:00 PM", title: "Rajma / chole + rice + sabzi", kcal: 750, protein: 35, carbs: 110, fats: 12, desc: "1.5 cups rajma or chole + 1 cup rice + seasonal sabzi (or tofu/soy)." }
+    ];
+
+    const groceryCategories = [
+      {
+        title: "Protein staples",
+        icon: "ti-meat",
+        badge: "highest priority",
+        badgeType: "success",
+        items: [
+          { id: "gp1", name: "Paneer (fresh)", qty: "1 kg/wk → 4 kg", cost: 520, sec: "Buy every week (perishable)" },
+          { id: "gp2", name: "Curd (dahi)", qty: "2 kg/wk → 8 kg", cost: 200, sec: "Buy every week (perishable)" },
+          { id: "gp3", name: "Full-fat milk", qty: "1 L/day → 30 L", cost: 280, sec: "Buy every week (perishable)" },
+          { id: "gp4", name: "Soya chunks (nutrela)", qty: "1 kg", cost: 120, sec: "Buy monthly (dry / long shelf life)" },
+          { id: "gp5", name: "Chana dal", qty: "1.5 kg", cost: 100, sec: "Buy monthly (dry / long shelf life)" },
+          { id: "gp6", name: "Rajma (red kidney beans)", qty: "1 kg", cost: 130, sec: "Buy monthly (dry / long shelf life)" },
+          { id: "gp7", name: "Moong dal (whole + split)", qty: "1 kg", cost: 90, sec: "Buy monthly (dry / long shelf life)" },
+          { id: "gp8", name: "Masoor dal", qty: "1 kg", cost: 110, sec: "Buy monthly (dry / long shelf life)" },
+          { id: "gp9", name: "Chole / kabuli chana", qty: "1 kg", cost: 80, sec: "Buy monthly (dry / long shelf life)" },
+          { id: "gp10", name: "Roasted chana (snack)", qty: "500g", cost: 60, sec: "Buy monthly (dry / long shelf life)" },
+          { id: "gp11", name: "Peanuts / peanut butter", qty: "500g or 1 jar PB", cost: 150, sec: "Buy monthly (dry / long shelf life)" }
+        ]
+      },
+      {
+        title: "Carbs & energy",
+        icon: "ti-wheat",
+        badge: "fuel for training",
+        badgeType: "primary",
+        items: [
+          { id: "gc1", name: "Whole wheat atta", qty: "5 kg", cost: 100 },
+          { id: "gc2", name: "Rice (any variety)", qty: "5 kg", cost: 80 },
+          { id: "gc3", name: "Poha (flattened rice)", qty: "1 kg", cost: 90 },
+          { id: "gc4", name: "Oats (rolled)", qty: "500g", cost: 60 },
+          { id: "gc5", name: "Bananas", qty: "~30 (2/day pre-wk)", cost: 60 },
+          { id: "gc6", name: "Sweet potato", qty: "2 kg", cost: 80 }
+        ]
+      },
+      {
+        title: "Healthy fats",
+        icon: "ti-droplet",
+        badge: "skin + hormones",
+        badgeType: "warning",
+        items: [
+          { id: "gf1", name: "Desi ghee", qty: "500g", cost: 120 },
+          { id: "gf2", name: "Almonds (raw)", qty: "250g", cost: 80 },
+          { id: "gf3", name: "Flaxseeds / chia seeds", qty: "200g", cost: 50 },
+          { id: "gf4", name: "Coconut oil", qty: "200ml", cost: 70 }
+        ]
+      },
+      {
+        title: "Vegetables & produce",
+        icon: "ti-leaf",
+        items: [
+          { id: "gv1", name: "Seasonal sabzi mix", qty: "~500g/day mix", cost: 200, sec: "Buy 2× per week (fresh)" },
+          { id: "gv2", name: "Spinach / palak", qty: "500g × 2 bunches", cost: 60, sec: "Buy 2× per week (fresh)" },
+          { id: "gv3", name: "Tomatoes", qty: "2 kg", cost: 30, sec: "Buy 2× per week (fresh)" },
+          { id: "gv4", name: "Onions", qty: "3 kg", cost: 40, sec: "Buy 2× per week (fresh)" },
+          { id: "gv5", name: "Garlic (raw consum.)", qty: "500g", cost: 30, sec: "Monthly Staples" },
+          { id: "gv6", name: "Ginger", qty: "200g", cost: 20, sec: "Monthly Staples" },
+          { id: "gv7", name: "Lemon", qty: "8–10 pieces", cost: 30, sec: "Monthly Staples" }
+        ]
+      },
+      {
+        title: "Skin remedies",
+        icon: "ti-sparkles",
+        items: [
+          { id: "gs1", name: "Raw honey (pure)", qty: "250g", cost: 80 },
+          { id: "gs2", name: "Turmeric (haldi)", qty: "100g raw + powder", cost: 20 }
+        ],
+        note: "Coconut oil (listed above) doubles as night moisturiser. Ghee (listed above) is also an internal skin supplement. Aloe vera plant at home is free and excellent."
+      },
+      {
+        title: "Supplement budget",
+        icon: "ti-pill",
+        badge: "₹500/mo focus",
+        badgeType: "warning",
+        items: [
+          { id: "gsu1", name: "Whey protein", qty: "AS-IT-IS or HK Vitals (1 kg)", cost: 450 }
+        ],
+        note: "Alternate months: buy creatine monohydrate (AS-IT-IS, ₹300 for 300g) instead of whey when protein from food is already sufficient. Creatine 5g/day, no loading needed."
+      }
+    ];
+
+    // Local Storage state keys
+    const getTodayString = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
+    // State Variables
+    let currentTab = 'overview';
+    let selectedWorkoutDay = 'mon';
+    let state = {
+      date: getTodayString(),
+      workoutSets: {}, // { "mon_exerciseIndex_setIndex": boolean }
+      checkedMeals: [], // [mealId]
+      waterCount: 0,
+      weightHistory: [
+        { date: "2026-05-01", weight: 56.0 },
+        { date: "2026-05-15", weight: 57.2 },
+        { date: "2026-06-01", weight: 58.5 }
+      ],
+      currentMilestone: 1,
+      routines: {}, // { "m1": boolean }
+      timelineChecks: {}, // { "tc1": boolean }
+      checkedGroceries: [] // [groceryItemId]
+    };
+
+    // Initialize state
+    function initAppState() {
+      const stored = localStorage.getItem("shukan_fitness_state");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.weightHistory) state.weightHistory = parsed.weightHistory;
+        if (parsed.currentMilestone) state.currentMilestone = parsed.currentMilestone;
+        if (parsed.timelineChecks) state.timelineChecks = parsed.timelineChecks;
+        if (parsed.checkedGroceries) state.checkedGroceries = parsed.checkedGroceries;
+        
+        // Reset daily checks if date changes
+        if (parsed.date === getTodayString()) {
+          state.date = parsed.date;
+          state.workoutSets = parsed.workoutSets || {};
+          state.checkedMeals = parsed.checkedMeals || [];
+          state.waterCount = parsed.waterCount || 0;
+          state.routines = parsed.routines || {};
+        } else {
+          // Keep historical data, reset daily
+          state.date = getTodayString();
+          saveState();
+        }
+      } else {
+        saveState();
+      }
+      
+      // Select current day automatically
+      const dayIndex = new Date().getDay(); // 0 is Sunday, 1 is Monday
+      const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      selectedWorkoutDay = days[dayIndex];
+      
+      renderAll();
+    }
+
+    function saveState() {
+      localStorage.setItem("shukan_fitness_state", JSON.stringify(state));
+    }
+
+    // Tab switcher
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      document.getElementById(`btn-${tabId}`).classList.add('active');
+      
+      // Auto redraw chart if entering timeline
+      if (tabId === 'timeline') {
+        setTimeout(drawChart, 100);
+      }
+    }
+
+    // Workout logic
+    function selectWorkoutDay(day) {
+      selectedWorkoutDay = day;
+      document.querySelectorAll('#workout-day-row .day-pill').forEach(pill => pill.classList.remove('active'));
+      
+      // Add active styling
+      const pills = document.querySelectorAll('#workout-day-row .day-pill');
+      const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+      const index = dayKeys.indexOf(day);
+      if (index !== -1) {
+        pills[index].classList.add('active');
+      }
+      
+      renderWorkoutExercises();
+    }
+
+    function toggleSet(day, exerciseIdx, setIdx) {
+      const key = `${day}_${exerciseIdx}_${setIdx}`;
+      state.workoutSets[key] = !state.workoutSets[key];
+      saveState();
+      renderWorkoutExercises();
+      updateIntakeProgress();
+    }
+
+    function renderWorkoutExercises() {
+      const workout = workouts[selectedWorkoutDay];
+      const listContainer = document.getElementById('workout-exercise-list');
+      const nameLbl = document.getElementById('workout-name-lbl');
+      const countBadge = document.getElementById('workout-count-badge');
+      const progressFill = document.getElementById('workout-progress');
+      
+      nameLbl.textContent = workout.title;
+      countBadge.textContent = workout.list.length > 0 ? `${workout.list.length} Exercises` : "Rest Day";
+      
+      if (workout.list.length === 0) {
+        listContainer.innerHTML = `
+          <div style="text-align:center; padding:32px 16px; color:var(--color-text-secondary); font-size:13px;">
+            <i class="ti ti-coffee" style="font-size:32px; color:var(--color-danger); display:block; margin-bottom:8px;"></i>
+            <b>Sunday Rest Protocol</b>
+            <p style="margin-top:6px;">Muscles grow when resting. Complete a light 20-minute walk today to flush lactic acid and optimize blood flow.</p>
+          </div>
+        `;
+        progressFill.style.width = "100%";
+        progressFill.style.background = "var(--color-danger)";
+        return;
+      }
+      
+      let html = '';
+      let totalSets = 0;
+      let completedSets = 0;
+      
+      workout.list.forEach((ex, exIdx) => {
+        let setsCompleted = 0;
+        let setHtml = '';
+        
+        for (let i = 1; i <= ex.sets; i++) {
+          totalSets++;
+          const setKey = `${selectedWorkoutDay}_${exIdx}_${i}`;
+          const isDone = !!state.workoutSets[setKey];
+          if (isDone) {
+            completedSets++;
+            setsCompleted++;
+          }
+          
+          setHtml += `
+            <div class="set-row ${isDone ? 'done' : ''} active-scale" onclick="toggleSet('${selectedWorkoutDay}', ${exIdx}, ${i})">
+              <span class="set-num">SET ${i}</span>
+              <span class="set-reps">${ex.reps} reps</span>
+              <div class="set-check"><i class="ti ti-check"></i></div>
+            </div>
+          `;
+        }
+        
+        const isExCompleted = (setsCompleted === ex.sets);
+        
+        html += `
+          <div style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-size:13px; font-weight:600; color:${isExCompleted ? 'var(--color-success)' : 'var(--color-text-primary)'}">${ex.name}</span>
+              <span style="font-size:11px; color:var(--color-text-muted);">${setsCompleted} / ${ex.sets} sets</span>
+            </div>
+            ${setHtml}
+          </div>
+        `;
+      });
+      
+      listContainer.innerHTML = html;
+      
+      // Calculate workout progress
+      const percent = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+      progressFill.style.width = `${percent}%`;
+      progressFill.style.background = "var(--grad-primary)";
+    }
+
+    // Diet macro tracker
+    function toggleMeal(mealId) {
+      const idx = state.checkedMeals.indexOf(mealId);
+      if (idx === -1) {
+        state.checkedMeals.push(mealId);
+      } else {
+        state.checkedMeals.splice(idx, 1);
+      }
+      saveState();
+      renderMeals();
+      updateIntakeProgress();
+    }
+
+    function renderMeals() {
+      const mealsContainer = document.getElementById('meals-list');
+      const badge = document.getElementById('meals-checked-badge');
+      badge.textContent = `${state.checkedMeals.length} / 6 Completed`;
+      
+      let html = '';
+      meals.forEach(meal => {
+        const isChecked = state.checkedMeals.includes(meal.id);
+        html += `
+          <div class="checklist-item active-scale ${isChecked ? 'checked' : ''}" onclick="toggleMeal('${meal.id}')">
+            <div class="chk-box"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--color-text-secondary); margin-bottom:4px; padding: 2px 6px;">${meal.time}</span>
+                <span style="font-size:11px; font-weight:600; color:var(--color-primary);">${meal.protein}g Protein</span>
+              </div>
+              <span style="font-weight:600; font-size:13px;">${meal.title}</span>
+              <p style="font-size:11px; margin-top:2px; line-height:1.4;">${meal.desc}</p>
+            </div>
+          </div>
+        `;
+      });
+      
+      mealsContainer.innerHTML = html;
+    }
+
+    function updateIntakeProgress() {
+      // Calculate macros checked off
+      let protein = 0;
+      let kcal = 0;
+      let carbs = 0;
+      let fats = 0;
+      
+      state.checkedMeals.forEach(mealId => {
+        const m = meals.find(x => x.id === mealId);
+        if (m) {
+          protein += m.protein;
+          kcal += m.kcal;
+          carbs += m.carbs;
+          fats += m.fats;
+        }
+      });
+      
+      // Update values in UI
+      document.getElementById('kcal-total-val').textContent = kcal;
+      document.getElementById('protein-total-val').textContent = protein + 'g';
+      
+      document.getElementById('diet-protein-lbl').textContent = `${protein}g / 150g`;
+      document.getElementById('diet-carbs-lbl').textContent = `${carbs}g / 350g`;
+      document.getElementById('diet-fats-lbl').textContent = `${fats}g / 70g`;
+      
+      // Update bars
+      document.getElementById('diet-protein-bar').style.width = `${Math.min((protein/150)*100, 100)}%`;
+      document.getElementById('diet-carbs-bar').style.width = `${Math.min((carbs/350)*100, 100)}%`;
+      document.getElementById('diet-fats-bar').style.width = `${Math.min((fats/70)*100, 100)}%`;
+      
+      // Radial progress ring dashoffset (Circumference = 2 * PI * 38 = 238.76)
+      const circ = 238.76;
+      const kcalPercent = Math.min(kcal / 2800, 1);
+      const kcalOffset = circ - (kcalPercent * circ);
+      document.getElementById('kcal-ring').style.strokeDashoffset = kcalOffset;
+
+      const protPercent = Math.min(protein / 150, 1);
+      const protOffset = circ - (protPercent * circ);
+      document.getElementById('protein-ring').style.strokeDashoffset = protOffset;
+    }
+
+    // Vegetarian protein calculator
+    function calculateProtein() {
+      const qty = parseFloat(document.getElementById('calc-qty').value) || 0;
+      const item = document.getElementById('calc-food').value;
+      let p = 0;
+      
+      if (item === 'soya') {
+        p = (qty * 52) / 100;
+      } else if (item === 'paneer') {
+        p = (qty * 18) / 100;
+      } else if (item === 'lentils') {
+        p = (qty * 24) / 100;
+      } else if (item === 'milk') {
+        p = (qty * 3.2) / 100; // 8g per 250ml
+      } else if (item === 'peanut') {
+        p = (qty * 25) / 100; // ~4g per tablespoon (16g)
+      }
+      
+      document.getElementById('calc-result-lbl').textContent = `${p.toFixed(1)}g P`;
+    }
+
+    // Skincare routines
+    function toggleRoutine(id) {
+      state.routines[id] = !state.routines[id];
+      saveState();
+      renderRoutines();
+    }
+
+    function renderRoutines() {
+      const mIds = ['m1', 'm2', 'm3', 'm4'];
+      const nIds = ['n1', 'n2', 'n3'];
+      
+      let mDone = 0;
+      mIds.forEach(id => {
+        const checked = !!state.routines[id];
+        const box = document.getElementById(`routine-${id}-chk`);
+        const item = box.parentElement;
+        if (checked) {
+          box.style.background = 'var(--color-success)';
+          box.style.borderColor = 'var(--color-success)';
+          box.style.color = '#000';
+          item.classList.add('checked');
+          mDone++;
+        } else {
+          box.style.background = 'transparent';
+          box.style.borderColor = 'var(--color-text-muted)';
+          box.style.color = 'transparent';
+          item.classList.remove('checked');
+        }
+      });
+      document.getElementById('skin-m-badge').textContent = `${mDone}/4`;
+      
+      let nDone = 0;
+      nIds.forEach(id => {
+        const checked = !!state.routines[id];
+        const box = document.getElementById(`routine-${id}-chk`);
+        const item = box.parentElement;
+        if (checked) {
+          box.style.background = 'var(--color-success)';
+          box.style.borderColor = 'var(--color-success)';
+          box.style.color = '#000';
+          item.classList.add('checked');
+          nDone++;
+        } else {
+          box.style.background = 'transparent';
+          box.style.borderColor = 'var(--color-text-muted)';
+          box.style.color = 'transparent';
+          item.classList.remove('checked');
+        }
+      });
+      document.getElementById('skin-n-badge').textContent = `${nDone}/3`;
+    }
+
+    // Water tracker widget
+    function renderWater() {
+      const grid = document.getElementById('water-glasses-grid');
+      let html = '';
+      for (let i = 1; i <= 12; i++) {
+        const isFull = i <= state.waterCount;
+        html += `<i class="ti ti-glass-full glass-icon ${isFull ? 'full' : ''}" onclick="toggleWaterGlass(${i})"></i>`;
+      }
+      grid.innerHTML = html;
+      
+      const liters = (state.waterCount * 0.25).toFixed(2);
+      document.getElementById('water-progress-badge').textContent = `${liters}L`;
+      document.getElementById('water-count-lbl').textContent = `${state.waterCount} / 12 Glasses completed`;
+    }
+
+    function toggleWaterGlass(index) {
+      if (state.waterCount === index) {
+        state.waterCount = index - 1;
+      } else {
+        state.waterCount = index;
+      }
+      saveState();
+      renderWater();
+    }
+
+    function addWater() {
+      if (state.waterCount < 12) {
+        state.waterCount++;
+        saveState();
+        renderWater();
+      }
+    }
+
+    // Grocery Logic & Calculation
+    function toggleGrocery(itemId) {
+      const idx = state.checkedGroceries.indexOf(itemId);
+      if (idx === -1) {
+        state.checkedGroceries.push(itemId);
+      } else {
+        state.checkedGroceries.splice(idx, 1);
+      }
+      saveState();
+      renderGroceries();
+    }
+
+    function resetGroceries() {
+      if (confirm("Reset all shopping list items?")) {
+        state.checkedGroceries = [];
+        saveState();
+        renderGroceries();
+      }
+    }
+
+    function renderGroceries() {
+      const container = document.getElementById('grocery-categories-container');
+      let html = '';
+      let totalCost = 0;
+      let spentCost = 0;
+      let totalItemsCount = 0;
+      let checkedItemsCount = 0;
+      
+      groceryCategories.forEach(cat => {
+        let itemsHtml = '';
+        let currentSectionHeader = '';
+        
+        cat.items.forEach(item => {
+          totalCost += item.cost;
+          totalItemsCount++;
+          const isChecked = state.checkedGroceries.includes(item.id);
+          if (isChecked) {
+            spentCost += item.cost;
+            checkedItemsCount++;
+          }
+          
+          // Render sub-section header if defined (e.g. Perishable vs Dry)
+          if (item.sec && item.sec !== currentSectionHeader) {
+            currentSectionHeader = item.sec;
+            itemsHtml += `<div class="section-label">${currentSectionHeader}</div>`;
+          }
+          
+          itemsHtml += `
+            <div class="grocery-row ${isChecked ? 'checked' : ''} active-scale" onclick="toggleGrocery('${item.id}')">
+              <div class="grocery-label">
+                <div class="chk-box" style="${isChecked ? 'background:var(--color-success); border-color:var(--color-success); color:#000;' : ''}">
+                  <i class="ti ti-check"></i>
+                </div>
+                <span class="name">${item.name}</span>
+              </div>
+              <div class="grocery-meta">
+                <span class="grocery-qty">${item.qty}</span>
+                <span class="grocery-cost">₹${item.cost}</span>
+              </div>
+            </div>
+          `;
+        });
+        
+        let badgeHtml = '';
+        if (cat.badge) {
+          badgeHtml = `<span class="badge badge-${cat.badgeType || 'primary'}" style="margin-left:auto;">${cat.badge}</span>`;
+        }
+        
+        let noteHtml = '';
+        if (cat.note) {
+          noteHtml = `<div style="font-size:11px; color:var(--color-text-muted); margin-top:8px; line-height:1.4; border-top:1px solid rgba(255,255,255,0.03); padding-top:8px;">${cat.note}</div>`;
+        }
+        
+        html += `
+          <div class="card">
+            <div class="card-title">
+              <span><i class="ti ${cat.icon}" style="margin-right:6px;"></i> ${cat.title}</span>
+              ${badgeHtml}
+            </div>
+            <div>
+              ${itemsHtml}
+            </div>
+            ${noteHtml}
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+      
+      // Calculate remaining values
+      const remainingCost = totalCost - spentCost;
+      const itemsLeft = totalItemsCount - checkedItemsCount;
+      const progressPercent = totalItemsCount > 0 ? Math.round((checkedItemsCount / totalItemsCount) * 100) : 0;
+      
+      // Update Widget Stats
+      document.getElementById('grocery-total-cost').textContent = `₹${totalCost.toLocaleString('en-IN')}`;
+      document.getElementById('grocery-spent-sub').textContent = `Spent: ₹${spentCost.toLocaleString('en-IN')}`;
+      document.getElementById('grocery-remaining-cost').textContent = `₹${remainingCost.toLocaleString('en-IN')}`;
+      document.getElementById('grocery-items-left').textContent = itemsLeft;
+      
+      document.getElementById('grocery-progress-badge').textContent = `${progressPercent}% Bought`;
+      document.getElementById('grocery-bar').style.width = `${progressPercent}%`;
+    }
+
+    function resetWater() {
+      state.waterCount = 0;
+      saveState();
+      renderWater();
+    }
+
+    // Weight and milestones
+    function selectMilestone(num) {
+      state.currentMilestone = num;
+      saveState();
+      renderMilestones();
+    }
+
+    function renderMilestones() {
+      for (let i = 1; i <= 4; i++) {
+        const node = document.getElementById(`node-m${i}`);
+        if (i < state.currentMilestone) {
+          node.className = "timeline-node completed";
+        } else if (i === state.currentMilestone) {
+          node.className = "timeline-node active";
+        } else {
+          node.className = "timeline-node";
+        }
+      }
+    }
+
+    // Weight Logger & HTML5 Canvas Line Graph
+    function logWeight() {
+      const val = parseFloat(document.getElementById('weight-log-val').value) || 0;
+      if (val > 40 && val < 100) {
+        // Check if log for today already exists, if so overwrite, else add
+        const today = getTodayString();
+        const existingIdx = state.weightHistory.findIndex(x => x.date === today);
+        if (existingIdx !== -1) {
+          state.weightHistory[existingIdx].weight = val;
+        } else {
+          state.weightHistory.push({ date: today, weight: val });
+        }
+        
+        // Sort history by date
+        state.weightHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
+        saveState();
+        
+        // Refresh weights
+        renderWeightMilestones();
+        drawChart();
+      }
+    }
+
+    function clearWeightHistory() {
+      if (confirm("Are you sure you want to clear your logged weight history?")) {
+        state.weightHistory = [{ date: getTodayString(), weight: 56.0 }];
+        saveState();
+        renderWeightMilestones();
+        drawChart();
+      }
+    }
+
+    function renderWeightMilestones() {
+      // Get latest weight
+      let cur = 56.0;
+      if (state.weightHistory.length > 0) {
+        cur = state.weightHistory[state.weightHistory.length - 1].weight;
+      }
+      
+      document.getElementById('header-weight-lbl').textContent = `${cur.toFixed(1)} kg`;
+      document.getElementById('current-weight-display').textContent = `${cur.toFixed(1)} kg`;
+      document.getElementById('widget-weight').textContent = `${cur.toFixed(1)} kg`;
+      
+      // BMI computation
+      const bmi = (cur / (1.7 * 1.7)).toFixed(1);
+      let status = 'lean';
+      if (bmi >= 25) status = 'overweight';
+      else if (bmi >= 18.5) status = 'normal';
+      document.getElementById('widget-bmi').textContent = `BMI ${bmi} — ${status}`;
+      
+      // Progress from 56 to 70
+      const range = 70.0 - 56.0;
+      const progress = cur - 56.0;
+      let pct = Math.max(0, Math.min(Math.round((progress / range) * 100), 100));
+      
+      document.getElementById('weight-progress-bar').style.width = `${pct}%`;
+      document.getElementById('weight-percent-badge').textContent = `${pct}%`;
+      
+      const remaining = 70.0 - cur;
+      if (remaining > 0) {
+        document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build lean muscle naturally.`;
+      } else {
+        document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintenance mode active.`;
+      }
+    }
+
+    function drawChart() {
+      const canvas = document.getElementById('weight-chart');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      // Set canvas drawing size
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      
+      const width = rect.width;
+      const height = rect.height;
+      
+      // Clear
+      ctx.clearRect(0, 0, width, height);
+      
+      const history = state.weightHistory;
+      if (history.length < 2) {
+        ctx.fillStyle = '#9497a1';
+        ctx.font = '12px Inter';
+        ctx.textAlign = 'center';
+        ctx.fillText('Log weight entries to see progress', width / 2, height / 2);
+        return;
+      }
+      
+      // Min Max bounds
+      const weights = history.map(x => x.weight);
+      const minW = Math.min(...weights, 56.0) - 1.0;
+      const maxW = Math.max(...weights, 70.0) + 1.0;
+      
+      // Coordinate conversions
+      const getX = (idx) => 30 + ((width - 50) * idx) / (history.length - 1);
+      const getY = (w) => height - 20 - ((height - 40) * (w - minW)) / (maxW - minW);
+      
+      // Grid lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.lineWidth = 1;
+      
+      // Draw horizontal target line (70kg)
+      const targetY = getY(70.0);
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(30, targetY);
+      ctx.lineTo(width - 20, targetY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Draw grid lines
+      for (let i = 0; i <= 3; i++) {
+        const val = minW + ((maxW - minW) * i) / 3;
+        const gridY = getY(val);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+        ctx.beginPath();
+        ctx.moveTo(30, gridY);
+        ctx.lineTo(width - 20, gridY);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#5e616b';
+        ctx.font = '9px Inter';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${val.toFixed(0)}kg`, 25, gridY + 3);
+      }
+      
+      // Plot Line
+      ctx.strokeStyle = 'url(#chartGradient)';
+      const gradient = ctx.createLinearGradient(0, 0, width, 0);
+      gradient.addColorStop(0, '#2e5bff');
+      gradient.addColorStop(1, '#9d50ff');
+      
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(getX(0), getY(history[0].weight));
+      
+      for (let i = 1; i < history.length; i++) {
+        // Curve lines
+        const xc = (getX(i-1) + getX(i)) / 2;
+        const yc = (getY(history[i-1].weight) + getY(history[i].weight)) / 2;
+        ctx.quadraticCurveTo(getX(i-1), getY(history[i-1].weight), xc, yc);
+      }
+      ctx.lineTo(getX(history.length - 1), getY(history[history.length - 1].weight));
+      ctx.strokeStyle = gradient;
+      ctx.stroke();
+      
+      // Points
+      history.forEach((pt, idx) => {
+        const px = getX(idx);
+        const py = getY(pt.weight);
+        
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#9d50ff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Show last label
+        if (idx === history.length - 1) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '10px Inter';
+          ctx.textAlign = 'center';
+          ctx.fillText(`${pt.weight.toFixed(1)}kg`, px, py - 10);
+        }
+      });
+    }
+
+    // Timeline checks
+    function toggleTimelineCheck(id) {
+      state.timelineChecks[id] = !state.timelineChecks[id];
+      saveState();
+      renderTimelineChecks();
+    }
+
+    function renderTimelineChecks() {
+      const ids = ['tc1', 'tc2', 'tc3'];
+      ids.forEach(id => {
+        const checked = !!state.timelineChecks[id];
+        const box = document.getElementById(`timelinecheck-${id}-chk`);
+        const item = box.parentElement;
+        if (checked) {
+          box.style.background = 'var(--color-success)';
+          box.style.borderColor = 'var(--color-success)';
+          box.style.color = '#000';
+          item.classList.add('checked');
+        } else {
+          box.style.background = 'transparent';
+          box.style.borderColor = 'var(--color-text-muted)';
+          box.style.color = 'transparent';
+          item.classList.remove('checked');
+        }
+      });
+    }
+
+    // Rest Timer Logic
+    let timerInterval = null;
+    let timerSeconds = 90;
+    let timerRunning = false;
+    let audioCtx = null;
+
+    function playBeep() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (e) {
+        console.log("Audio not allowed yet");
+      }
+    }
+
+    function openTimer() {
+      document.getElementById('timer-modal').style.display = 'flex';
+      renderTimer();
+    }
+
+    function closeTimer() {
+      document.getElementById('timer-modal').style.display = 'none';
+    }
+
+    function renderTimer() {
+      document.getElementById('timer-num').textContent = timerSeconds;
+      document.getElementById('timer-toggle-btn').textContent = timerRunning ? "Pause" : "Start";
+    }
+
+    function toggleTimer() {
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+      } else {
+        timerRunning = true;
+        // Request audio context activation
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        
+        timerInterval = setInterval(() => {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            renderTimer();
+          } else {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            playBeep();
+            alert("Rest over! Get to your next set.");
+            timerSeconds = 90;
+            renderTimer();
+          }
+        }, 1000);
+      }
+      renderTimer();
+    }
+
+    function addTimerSeconds(s) {
+      timerSeconds = Math.max(0, timerSeconds + s);
+      renderTimer();
+    }
+
+    // Master render binder
+    function renderAll() {
+      renderWorkoutExercises();
+      renderMeals();
+      updateIntakeProgress();
+      calculateProtein();
+      renderRoutines();
+      renderWater();
+      renderMilestones();
+      renderWeightMilestones();
+      renderTimelineChecks();
+      renderGroceries();
+      drawChart();
+    }
+
+    // Startup
+    window.addEventListener('load', () => {
+      initAppState();
+      
+      // Redraw canvas on window resize
+      window.addEventListener('resize', () => {
+        if (currentTab === 'timeline') drawChart();
+      });
+    });
+  </script>
+</body>
+</html>
