@@ -13,6 +13,9 @@
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   
+  <!-- Chart.js (Required for Growth Tracker) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  
   <style>
     :root {
       /* Palette */
@@ -44,6 +47,13 @@
       --radius-md: 14px;
       --radius-lg: 24px;
       --radius-full: 9999px;
+
+      /* Growth Tracker Required Style Variables */
+      --color-background-primary: var(--grad-card);
+      --color-background-secondary: rgba(255, 255, 255, 0.03);
+      --color-border-tertiary: var(--color-card-border);
+      --border-radius-lg: var(--radius-lg);
+      --border-radius-md: var(--radius-md);
     }
 
     * {
@@ -178,10 +188,10 @@
 
     /* Glassmorphic Cards */
     .card {
-      background: var(--grad-card);
-      border: 1px solid var(--color-card-border);
-      border-radius: var(--radius-lg);
-      padding: 20px;
+      background: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 1rem 1.25rem;
       margin-bottom: 16px;
       position: relative;
       overflow: hidden;
@@ -247,10 +257,10 @@
 
     /* Stats Dashboard Widgets */
     .stat-widget {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: var(--radius-md);
-      padding: 14px;
+      background: var(--color-background-secondary);
+      border: none;
+      border-radius: var(--border-radius-md);
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -319,7 +329,7 @@
       margin-top: 2px;
     }
 
-    /* Tabs bottom navigation - Sized down to fit 6 tabs cleanly */
+    /* Tabs bottom navigation - Highly responsive flex logic to support 7 tabs */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -335,7 +345,7 @@
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding: 0 4px;
+      padding: 0 2px;
       z-index: 1000;
     }
 
@@ -347,7 +357,8 @@
       background: transparent;
       border: none;
       color: var(--color-text-muted);
-      width: 58px;
+      flex: 1;
+      min-width: 0;
       height: 52px;
       border-radius: var(--radius-md);
       gap: 3px;
@@ -361,6 +372,11 @@
     .nav-btn span {
       font-size: 9px;
       font-weight: 500;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
       transition: color 150ms var(--ease-out);
     }
 
@@ -982,6 +998,37 @@
       min-width: 50px;
       text-align: right;
     }
+
+    /* Segmented selector rows for Lift Tracker */
+    .seg-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .seg-row::-webkit-scrollbar {
+      display: none;
+    }
+    .seg-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--color-text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 140ms var(--ease-out);
+    }
+    .seg-btn.active {
+      background: rgba(46, 91, 255, 0.12);
+      border-color: var(--color-primary);
+      color: var(--color-text-primary);
+    }
   </style>
 </head>
 <body>
@@ -1015,6 +1062,39 @@
       
       <!-- ==================== OVERVIEW SECTION ==================== -->
       <div id="overview" class="section active">
+        
+        <!-- Live Dashboard Stat Cards (Added for Growth Tracker) -->
+        <div class="grid-2" style="margin-bottom: 12px;" id="dashboard-tracker-widgets">
+          <div class="stat-widget" style="min-height: 70px;">
+            <span class="label">Current Weight</span>
+            <span class="value" id="dash-curr-weight">56.0 kg</span>
+            <span class="sub" id="dash-curr-bmi">BMI 19.4 — lean</span>
+          </div>
+          <div class="stat-widget" style="min-height: 70px;">
+            <span class="label">Target Weight</span>
+            <span class="value">70.0 kg</span>
+            <span class="sub">+14.0 kg lean</span>
+          </div>
+          <div class="stat-widget" style="min-height: 70px;">
+            <span class="label">Progress %</span>
+            <span class="value" id="dash-progress-pct">0%</span>
+            <span class="sub">To 70 kg goal</span>
+          </div>
+          <div class="stat-widget" style="min-height: 70px;">
+            <span class="label">Days Logged</span>
+            <span class="value" id="dash-days-logged">0 days</span>
+            <span class="sub">Weight entries</span>
+          </div>
+        </div>
+
+        <!-- Live Mini Weight Chart (Added for Growth Tracker) -->
+        <div class="card" style="padding: 14px 20px;" id="dash-chart-card">
+          <div class="card-title" style="margin-bottom: 8px;">Weight Trend <i class="ti ti-chart-line"></i></div>
+          <div class="canvas-container" style="height:150px; background:rgba(0, 0, 0, 0.2); border-radius:var(--radius-md); padding:6px 10px;">
+            <canvas id="dash-weight-chart"></canvas>
+          </div>
+        </div>
+        
         <!-- Main Stats Rings -->
         <div class="card">
           <div class="card-title">Daily Intake Goals <span class="badge badge-primary">Standard</span></div>
@@ -1130,6 +1210,73 @@
             Your current split is solid. However, PPL (Push-Pull-Legs) organizes workouts by <b>movement patterns</b> rather than isolation, reducing muscle overlap and optimizing joint recovery. PPL is highly recommended for building structural volume to move from 56 → 70 kg. If you stick with the double split, ensure recovery times are kept consistent.
           </div>
         </div>
+      </div>
+
+      <!-- ==================== GROWTH TRACKER SECTION ==================== -->
+      <div id="tracker" class="section">
+        
+        <!-- Weight Log Card -->
+        <div class="card">
+          <div class="card-title">Log Daily Weight <i class="ti ti-scale"></i></div>
+          <div class="calc-row" style="margin-bottom:12px;">
+            <input type="date" id="tracker-weight-date" class="calc-input">
+            <input type="number" id="tracker-weight-val" class="calc-input" placeholder="Weight (kg)" step="0.1" min="40" max="150">
+            <button class="btn active-scale" style="flex:0.6; padding:0 12px; height:38px;" onclick="saveWeightLog()">Save</button>
+          </div>
+          
+          <div style="font-size:12px; font-weight:600; color:var(--color-text-secondary); margin-bottom:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">Recent Weight Entries</div>
+          <div id="tracker-weight-list" style="max-height:180px; overflow-y:auto;">
+            <!-- Dynamically populated (date | weight | delete button) -->
+          </div>
+        </div>
+
+        <!-- Weight Chart Card -->
+        <div class="card">
+          <div class="card-title">Weight Progress Chart <i class="ti ti-chart-line"></i></div>
+          <div class="canvas-container" style="height:200px; background:rgba(0, 0, 0, 0.2); border-radius:var(--radius-md); padding:10px;">
+            <canvas id="tracker-weight-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Milestone Progress Card -->
+        <div class="card">
+          <div class="card-title">Milestone Progress <i class="ti ti-circle-check"></i></div>
+          <div id="tracker-milestone-list">
+            <!-- 4 milestones hardcoded -->
+          </div>
+        </div>
+
+        <!-- Lift Tracker Card -->
+        <div class="card">
+          <div class="card-title">Lift Progress Tracker <i class="ti ti-barbell"></i></div>
+          
+          <!-- Lift Selector Segments -->
+          <div class="seg-row">
+            <div class="seg-btn active active-scale" id="lift-btn-bench" onclick="selectLift('Bench Press')">Bench Press</div>
+            <div class="seg-btn active-scale" id="lift-btn-squat" onclick="selectLift('Squat')">Squat</div>
+            <div class="seg-btn active-scale" id="lift-btn-deadlift" onclick="selectLift('Deadlift')">Deadlift</div>
+            <div class="seg-btn active-scale" id="lift-btn-ohp" onclick="selectLift('OHP')">OHP</div>
+          </div>
+
+          <!-- Lift Input Row -->
+          <div class="calc-row" style="margin-bottom:12px;">
+            <input type="number" id="tracker-lift-weight" class="calc-input" placeholder="Weight (kg)" step="0.5" min="0" max="300">
+            <input type="number" id="tracker-lift-reps" class="calc-input" placeholder="Reps" min="0" max="100">
+            <button class="btn active-scale" style="flex:0.6; padding:0 12px; height:38px;" onclick="saveLiftLog()">Save</button>
+          </div>
+
+          <div style="font-size:12px; font-weight:600; color:var(--color-text-secondary); margin-bottom:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">Recent Lift Entries</div>
+          <div id="tracker-lift-list" style="max-height:120px; overflow-y:auto; margin-bottom:12px;">
+            <!-- Dynamically populated (date | weight x reps) -->
+          </div>
+
+          <!-- Lift Chart Container -->
+          <div class="canvas-container" style="height:160px; background:rgba(0, 0, 0, 0.2); border-radius:var(--radius-md); padding:10px; position:relative;">
+            <div id="lift-empty-state" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--color-text-muted); font-size:12px; font-weight:500;">No entries yet</div>
+            <canvas id="tracker-lift-chart"></canvas>
+          </div>
+        </div>
+
       </div>
 
       <!-- ==================== WORKOUT SECTION ==================== -->
@@ -1529,11 +1676,15 @@
 
     </div>
 
-    <!-- Sticky Bottom Navigation Bar (Updated for 6 Tabs) -->
+    <!-- Sticky Bottom Navigation Bar (Updated for 7 Tabs with Growth Tracker) -->
     <div class="bottom-nav">
       <button class="nav-btn active active-scale" id="btn-overview" onclick="switchTab('overview')">
         <i class="ti ti-layout-dashboard"></i>
         <span>Overview</span>
+      </button>
+      <button class="nav-btn active-scale" id="btn-tracker" onclick="switchTab('tracker')">
+        <i class="ti ti-trending-up"></i>
+        <span>Growth tracker</span>
       </button>
       <button class="nav-btn active-scale" id="btn-workout" onclick="switchTab('workout')">
         <i class="ti ti-barbell"></i>
@@ -1764,6 +1915,15 @@
       checkedGroceries: [] // [groceryItemId]
     };
 
+    // Chart registry to avoid canvas conflicts
+    const chartRegistry = {
+      dashWeight: null,
+      trackerWeight: null,
+      trackerLift: null
+    };
+
+    let selectedLiftType = 'Bench Press';
+
     // Initialize state
     function initAppState() {
       const stored = localStorage.getItem("shukan_fitness_state");
@@ -1795,7 +1955,12 @@
       const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
       selectedWorkoutDay = days[dayIndex];
       
+      // Default dates
+      document.getElementById('tracker-weight-date').value = getTodayString();
+      
       renderAll();
+      renderTrackerAndDashboard();
+      renderLiftTracker();
     }
 
     function saveState() {
@@ -1811,9 +1976,18 @@
       document.getElementById(tabId).classList.add('active');
       document.getElementById(`btn-${tabId}`).classList.add('active');
       
-      // Auto redraw chart if entering timeline
+      // Auto redraw charts on entry
       if (tabId === 'timeline') {
         setTimeout(drawChart, 100);
+      } else if (tabId === 'tracker') {
+        setTimeout(() => {
+          renderTrackerAndDashboard();
+          renderLiftTracker();
+        }, 100);
+      } else if (tabId === 'overview') {
+        setTimeout(() => {
+          renderTrackerAndDashboard();
+        }, 100);
       }
     }
 
@@ -2227,51 +2401,34 @@
       }
     }
 
-    // Weight Logger & HTML5 Canvas Line Graph
+    // Weight Logger (Original timeline logger - left untouched)
     function logWeight() {
       const val = parseFloat(document.getElementById('weight-log-val').value) || 0;
       if (val > 40 && val < 100) {
-        // Check if log for today already exists, if so overwrite, else add
         const today = getTodayString();
-        const existingIdx = state.weightHistory.findIndex(x => x.date === today);
-        if (existingIdx !== -1) {
-          state.weightHistory[existingIdx].weight = val;
-        } else {
-          state.weightHistory.push({ date: today, weight: val });
-        }
-        
-        // Sort history by date
-        state.weightHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
-        saveState();
-        
-        // Refresh weights
-        renderWeightMilestones();
-        drawChart();
+        // Update both existing logs and the Growth Tracker logs
+        saveNewWeightEntry(today, val);
       }
     }
 
     function clearWeightHistory() {
       if (confirm("Are you sure you want to clear your logged weight history?")) {
-        state.weightHistory = [{ date: getTodayString(), weight: 56.0 }];
-        saveState();
-        renderWeightMilestones();
-        drawChart();
+        localStorage.removeItem("shukan_weights");
+        renderTrackerAndDashboard();
       }
     }
 
     function renderWeightMilestones() {
-      // Get latest weight
-      let cur = 56.0;
-      if (state.weightHistory.length > 0) {
-        cur = state.weightHistory[state.weightHistory.length - 1].weight;
-      }
+      // Synchronized with Tracker data
+      const weights = getWeightLogs();
+      const latestWeight = weights.length > 0 ? weights[weights.length - 1].w : 56.0;
       
-      document.getElementById('header-weight-lbl').textContent = `${cur.toFixed(1)} kg`;
-      document.getElementById('current-weight-display').textContent = `${cur.toFixed(1)} kg`;
-      document.getElementById('widget-weight').textContent = `${cur.toFixed(1)} kg`;
+      document.getElementById('header-weight-lbl').textContent = `${latestWeight.toFixed(1)} kg`;
+      document.getElementById('current-weight-display').textContent = `${latestWeight.toFixed(1)} kg`;
+      document.getElementById('widget-weight').textContent = `${latestWeight.toFixed(1)} kg`;
       
       // BMI computation
-      const bmi = (cur / (1.7 * 1.7)).toFixed(1);
+      const bmi = (latestWeight / (1.7 * 1.7)).toFixed(1);
       let status = 'lean';
       if (bmi >= 25) status = 'overweight';
       else if (bmi >= 18.5) status = 'normal';
@@ -2279,26 +2436,28 @@
       
       // Progress from 56 to 70
       const range = 70.0 - 56.0;
-      const progress = cur - 56.0;
+      const progress = latestWeight - 56.0;
       let pct = Math.max(0, Math.min(Math.round((progress / range) * 100), 100));
       
       document.getElementById('weight-progress-bar').style.width = `${pct}%`;
       document.getElementById('weight-percent-badge').textContent = `${pct}%`;
       
-      const remaining = 70.0 - cur;
-      if (remaining > 0) {
-        document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build lean muscle naturally.`;
-      } else {
-        document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintenance mode active.`;
+      const remaining = 70.0 - latestWeight;
+      if (document.getElementById('weight-remaining-lbl')) {
+        if (remaining > 0) {
+          document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build lean muscle naturally.`;
+        } else {
+          document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintenance mode active.`;
+        }
       }
     }
 
+    // Original Timeline Graph
     function drawChart() {
       const canvas = document.getElementById('weight-chart');
       if (!canvas) return;
       
       const ctx = canvas.getContext('2d');
-      // Set canvas drawing size
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * dpr;
@@ -2308,32 +2467,27 @@
       const width = rect.width;
       const height = rect.height;
       
-      // Clear
       ctx.clearRect(0, 0, width, height);
       
-      const history = state.weightHistory;
+      const history = getWeightLogs();
       if (history.length < 2) {
         ctx.fillStyle = '#9497a1';
         ctx.font = '12px Inter';
         ctx.textAlign = 'center';
-        ctx.fillText('Log weight entries to see progress', width / 2, height / 2);
+        ctx.fillText('Log weight entries in Growth Tracker to see graph', width / 2, height / 2);
         return;
       }
       
-      // Min Max bounds
-      const weights = history.map(x => x.weight);
+      const weights = history.map(x => x.w);
       const minW = Math.min(...weights, 56.0) - 1.0;
       const maxW = Math.max(...weights, 70.0) + 1.0;
       
-      // Coordinate conversions
       const getX = (idx) => 30 + ((width - 50) * idx) / (history.length - 1);
       const getY = (w) => height - 20 - ((height - 40) * (w - minW)) / (maxW - minW);
       
-      // Grid lines
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
       ctx.lineWidth = 1;
       
-      // Draw horizontal target line (70kg)
       const targetY = getY(70.0);
       ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
       ctx.setLineDash([5, 5]);
@@ -2343,7 +2497,6 @@
       ctx.stroke();
       ctx.setLineDash([]);
       
-      // Draw grid lines
       for (let i = 0; i <= 3; i++) {
         const val = minW + ((maxW - minW) * i) / 3;
         const gridY = getY(val);
@@ -2359,7 +2512,6 @@
         ctx.fillText(`${val.toFixed(0)}kg`, 25, gridY + 3);
       }
       
-      // Plot Line
       ctx.strokeStyle = 'url(#chartGradient)';
       const gradient = ctx.createLinearGradient(0, 0, width, 0);
       gradient.addColorStop(0, '#2e5bff');
@@ -2367,22 +2519,20 @@
       
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(getX(0), getY(history[0].weight));
+      ctx.moveTo(getX(0), getY(history[0].w));
       
       for (let i = 1; i < history.length; i++) {
-        // Curve lines
         const xc = (getX(i-1) + getX(i)) / 2;
-        const yc = (getY(history[i-1].weight) + getY(history[i].weight)) / 2;
-        ctx.quadraticCurveTo(getX(i-1), getY(history[i-1].weight), xc, yc);
+        const yc = (getY(history[i-1].w) + getY(history[i].w)) / 2;
+        ctx.quadraticCurveTo(getX(i-1), getY(history[i-1].w), xc, yc);
       }
-      ctx.lineTo(getX(history.length - 1), getY(history[history.length - 1].weight));
+      ctx.lineTo(getX(history.length - 1), getY(history[history.length - 1].w));
       ctx.strokeStyle = gradient;
       ctx.stroke();
       
-      // Points
       history.forEach((pt, idx) => {
         const px = getX(idx);
-        const py = getY(pt.weight);
+        const py = getY(pt.w);
         
         ctx.beginPath();
         ctx.arc(px, py, 4, 0, 2 * Math.PI);
@@ -2392,12 +2542,11 @@
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Show last label
         if (idx === history.length - 1) {
           ctx.fillStyle = '#ffffff';
           ctx.font = '10px Inter';
           ctx.textAlign = 'center';
-          ctx.fillText(`${pt.weight.toFixed(1)}kg`, px, py - 10);
+          ctx.fillText(`${pt.w.toFixed(1)}kg`, px, py - 10);
         }
       });
     }
@@ -2443,7 +2592,7 @@
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.3);
@@ -2472,7 +2621,6 @@
         timerRunning = false;
       } else {
         timerRunning = true;
-        // Request audio context activation
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         
         timerInterval = setInterval(() => {
@@ -2497,6 +2645,403 @@
       renderTimer();
     }
 
+    // ==================== RE-DEFINED TRACKER SCRIPTING ====================
+
+    function getWeightLogs() {
+      const stored = localStorage.getItem("shukan_weights");
+      if (stored) {
+        try {
+          const arr = JSON.parse(stored);
+          if (Array.isArray(arr)) {
+            arr.sort((a, b) => new Date(a.d) - new Date(b.d));
+            return arr;
+          }
+        } catch(e) {}
+      }
+      return [];
+    }
+
+    function getLiftLogs() {
+      const stored = localStorage.getItem("shukan_lifts");
+      if (stored) {
+        try {
+          const obj = JSON.parse(stored);
+          if (obj && typeof obj === 'object') {
+            return obj;
+          }
+        } catch(e) {}
+      }
+      return {};
+    }
+
+    function saveNewWeightEntry(dateVal, weightVal) {
+      let weights = getWeightLogs();
+      const existingIdx = weights.findIndex(x => x.d === dateVal);
+      if (existingIdx !== -1) {
+        weights[existingIdx].w = parseFloat(weightVal.toFixed(1));
+      } else {
+        weights.push({ d: dateVal, w: parseFloat(weightVal.toFixed(1)) });
+      }
+      weights.sort((a, b) => new Date(a.d) - new Date(b.d));
+      localStorage.setItem("shukan_weights", JSON.stringify(weights));
+      renderTrackerAndDashboard();
+    }
+
+    function saveWeightLog() {
+      const dateEl = document.getElementById('tracker-weight-date');
+      const valEl = document.getElementById('tracker-weight-val');
+      const dateVal = dateEl.value;
+      const weightVal = parseFloat(valEl.value);
+      
+      if (!dateVal || isNaN(weightVal) || weightVal <= 0) {
+        alert("Please enter a valid date and weight.");
+        return;
+      }
+      
+      saveNewWeightEntry(dateVal, weightVal);
+      valEl.value = '';
+      dateEl.value = getTodayString();
+    }
+
+    function deleteWeightLog(date) {
+      if (confirm(`Delete weight log for ${date}?`)) {
+        let weights = getWeightLogs();
+        weights = weights.filter(x => x.d !== date);
+        localStorage.setItem("shukan_weights", JSON.stringify(weights));
+        renderTrackerAndDashboard();
+      }
+    }
+
+    function saveLiftLog() {
+      const valEl = document.getElementById('tracker-lift-weight');
+      const repsEl = document.getElementById('tracker-lift-reps');
+      
+      const weightVal = parseFloat(valEl.value);
+      const repsVal = parseInt(repsEl.value);
+      
+      if (isNaN(weightVal) || isNaN(repsVal) || weightVal < 0 || repsVal < 0) {
+        alert("Please enter a valid weight and reps.");
+        return;
+      }
+      
+      let lifts = getLiftLogs();
+      if (!lifts[selectedLiftType]) {
+        lifts[selectedLiftType] = [];
+      }
+      
+      const today = getTodayString();
+      const existingIdx = lifts[selectedLiftType].findIndex(x => x.d === today);
+      if (existingIdx !== -1) {
+        lifts[selectedLiftType][existingIdx] = { d: today, w: parseFloat(weightVal.toFixed(1)), r: repsVal };
+      } else {
+        lifts[selectedLiftType].push({ d: today, w: parseFloat(weightVal.toFixed(1)), r: repsVal });
+      }
+      
+      lifts[selectedLiftType].sort((a, b) => new Date(a.d) - new Date(b.d));
+      if (lifts[selectedLiftType].length > 20) {
+        lifts[selectedLiftType] = lifts[selectedLiftType].slice(-20);
+      }
+      
+      localStorage.setItem("shukan_lifts", JSON.stringify(lifts));
+      
+      valEl.value = '';
+      repsEl.value = '';
+      
+      renderLiftTracker();
+    }
+
+    function selectLift(liftName) {
+      selectedLiftType = liftName;
+      document.querySelectorAll('.seg-btn').forEach(btn => btn.classList.remove('active'));
+      
+      const idMap = {
+        'Bench Press': 'lift-btn-bench',
+        'Squat': 'lift-btn-squat',
+        'Deadlift': 'lift-btn-deadlift',
+        'OHP': 'lift-btn-ohp'
+      };
+      document.getElementById(idMap[liftName]).classList.add('active');
+      
+      renderLiftTracker();
+    }
+
+    function renderTrackerAndDashboard() {
+      const weights = getWeightLogs();
+      const latestWeight = weights.length > 0 ? weights[weights.length - 1].w : 56.0;
+      
+      // Update Overview stats
+      document.getElementById('dash-curr-weight').textContent = `${latestWeight.toFixed(1)} kg`;
+      
+      // Sync other displays
+      if (document.getElementById('header-weight-lbl')) {
+        document.getElementById('header-weight-lbl').textContent = `${latestWeight.toFixed(1)} kg`;
+      }
+      if (document.getElementById('current-weight-display')) {
+        document.getElementById('current-weight-display').textContent = `${latestWeight.toFixed(1)} kg`;
+      }
+      if (document.getElementById('widget-weight')) {
+        document.getElementById('widget-weight').textContent = `${latestWeight.toFixed(1)} kg`;
+      }
+      
+      // BMI computation
+      const bmi = (latestWeight / (1.7 * 1.7)).toFixed(1);
+      let bmiStatus = 'lean';
+      if (bmi >= 25) bmiStatus = 'overweight';
+      else if (bmi >= 18.5) bmiStatus = 'normal';
+      document.getElementById('dash-curr-bmi').textContent = `BMI ${bmi} — ${bmiStatus}`;
+      if (document.getElementById('widget-bmi')) {
+        document.getElementById('widget-bmi').textContent = `BMI ${bmi} — ${bmiStatus}`;
+      }
+      
+      // Progress %
+      const progressPercent = Math.max(0, Math.min(100, Math.round(((latestWeight - 56) / (70 - 56)) * 100)));
+      document.getElementById('dash-progress-pct').textContent = `${progressPercent}%`;
+      if (document.getElementById('weight-percent-badge')) {
+        document.getElementById('weight-percent-badge').textContent = `${progressPercent}%`;
+      }
+      if (document.getElementById('weight-progress-bar')) {
+        document.getElementById('weight-progress-bar').style.width = `${progressPercent}%`;
+      }
+      
+      // Days logged
+      document.getElementById('dash-days-logged').textContent = `${weights.length} day${weights.length === 1 ? '' : 's'}`;
+      
+      const remaining = 70.0 - latestWeight;
+      if (document.getElementById('weight-remaining-lbl')) {
+        if (remaining > 0) {
+          document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build lean muscle naturally.`;
+        } else {
+          document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintenance mode active.`;
+        }
+      }
+
+      // Render weight log list inside Tracker tab
+      const listContainer = document.getElementById('tracker-weight-list');
+      if (listContainer) {
+        const displayWeights = [...weights].reverse().slice(0, 10);
+        if (displayWeights.length === 0) {
+          listContainer.innerHTML = `<div style="padding:8px 0; color:var(--color-text-muted); font-size:12px;">No weight entries logged yet.</div>`;
+        } else {
+          let listHtml = '';
+          displayWeights.forEach(item => {
+            listHtml += `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                <span style="font-size:13px; color:var(--color-text-secondary);">${item.d}</span>
+                <span style="font-size:13px; font-weight:600; color:var(--color-text-primary);">${item.w.toFixed(1)} kg</span>
+                <button class="active-scale" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:14px; padding:2px;" onclick="deleteWeightLog('${item.d}')">
+                  <i class="ti ti-trash"></i>
+                </button>
+              </div>
+            `;
+          });
+          listContainer.innerHTML = listHtml;
+        }
+      }
+
+      // Render milestones progress bars inside Tracker tab
+      const milestones = [
+        { label: "Phase 1", range: "59–60 kg", max: 60, time: "Month 1–2" },
+        { label: "Phase 2", range: "63–64 kg", max: 64, time: "Month 3–5" },
+        { label: "Phase 3", range: "66–67 kg", max: 67, time: "Month 6–9" },
+        { label: "Goal", range: "70 kg", max: 70, time: "Month 12–18" }
+      ];
+      
+      const milestoneContainer = document.getElementById('tracker-milestone-list');
+      if (milestoneContainer) {
+        let mHtml = '';
+        milestones.forEach(m => {
+          const pct = Math.max(0, Math.min(100, Math.round(((latestWeight - 56) / (m.max - 56)) * 100)));
+          mHtml += `
+            <div style="margin-bottom:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:4px;">
+                <span style="font-weight:600; color:var(--color-text-primary);">${m.label} (${m.range})</span>
+                <span class="badge badge-primary">${m.time}</span>
+              </div>
+              <div style="height:5px; background:var(--color-background-secondary); border-radius:3px; overflow:hidden;">
+                <div style="height:100%; width:${pct}%; background:#378ADD; border-radius:3px; transition:width 400ms var(--ease-out);"></div>
+              </div>
+              <div style="text-align:right; font-size:10px; color:var(--color-text-secondary); margin-top:2px;">${pct}% completed</div>
+            </div>
+          `;
+        });
+        milestoneContainer.innerHTML = mHtml;
+      }
+
+      // Render weight charts
+      renderWeightCharts(weights);
+    }
+
+    function renderWeightCharts(weights) {
+      let chartData = [];
+      let chartLabels = [];
+      
+      if (weights.length === 0) {
+        chartData = [56.0];
+        chartLabels = [getTodayString()];
+      } else {
+        chartData = weights.map(x => x.w);
+        chartLabels = weights.map(x => x.d);
+      }
+      
+      const lineDataset = {
+        data: chartData,
+        borderColor: '#378ADD',
+        borderWidth: 2,
+        tension: 0.3,
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: '#378ADD',
+        pointRadius: weights.length === 1 ? 5 : 3,
+        fill: false
+      };
+      
+      const targetDataset = {
+        data: Array(chartLabels.length).fill(70.0),
+        borderColor: 'rgba(16, 185, 129, 0.4)',
+        borderWidth: 1.5,
+        borderDash: [5, 5],
+        pointRadius: 0,
+        fill: false
+      };
+
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(128,128,128,0.1)' },
+            ticks: { color: '#888', font: { size: 11, family: 'Inter' } }
+          },
+          y: {
+            grid: { color: 'rgba(128,128,128,0.1)' },
+            ticks: { color: '#888', font: { size: 11, family: 'Inter' } },
+            min: 56.0,
+            max: Math.max(70.0, ...chartData) + 2.0
+          }
+        }
+      };
+
+      // 1. Dashboard Mini Chart
+      const dashCtx = document.getElementById('dash-weight-chart');
+      if (dashCtx) {
+        if (chartRegistry.dashWeight) chartRegistry.dashWeight.destroy();
+        chartRegistry.dashWeight = new Chart(dashCtx, {
+          type: 'line',
+          data: {
+            labels: chartLabels,
+            datasets: [lineDataset, targetDataset]
+          },
+          options: chartOptions
+        });
+      }
+
+      // 2. Tracker Full Chart
+      const trackerCtx = document.getElementById('tracker-weight-chart');
+      if (trackerCtx) {
+        if (chartRegistry.trackerWeight) chartRegistry.trackerWeight.destroy();
+        chartRegistry.trackerWeight = new Chart(trackerCtx, {
+          type: 'line',
+          data: {
+            labels: chartLabels,
+            datasets: [lineDataset, targetDataset]
+          },
+          options: chartOptions
+        });
+      }
+      
+      // Keep Timeline Graph in sync
+      drawChart();
+    }
+
+    function renderLiftTracker() {
+      const lifts = getLiftLogs();
+      const entries = lifts[selectedLiftType] || [];
+      
+      const listContainer = document.getElementById('tracker-lift-list');
+      const emptyStateEl = document.getElementById('lift-empty-state');
+      const canvasEl = document.getElementById('tracker-lift-chart');
+      
+      document.getElementById('tracker-lift-weight').placeholder = `${selectedLiftType} Weight (kg)`;
+      
+      if (listContainer) {
+        const displayLifts = [...entries].reverse().slice(0, 5);
+        if (displayLifts.length === 0) {
+          listContainer.innerHTML = `<div style="padding:8px 0; color:var(--color-text-muted); font-size:12px;">No lift logs yet.</div>`;
+        } else {
+          let listHtml = '';
+          displayLifts.forEach(item => {
+            listHtml += `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:13px;">
+                <span style="color:var(--color-text-secondary);">${item.d}</span>
+                <span style="font-weight:600; color:var(--color-text-primary);">${item.w.toFixed(1)} kg × ${item.r} reps</span>
+              </div>
+            `;
+          });
+          listContainer.innerHTML = listHtml;
+        }
+      }
+
+      if (entries.length === 0) {
+        emptyStateEl.textContent = `No entries yet for ${selectedLiftType}`;
+        emptyStateEl.style.display = 'block';
+        canvasEl.style.display = 'none';
+        if (chartRegistry.trackerLift) {
+          chartRegistry.trackerLift.destroy();
+          chartRegistry.trackerLift = null;
+        }
+      } else {
+        emptyStateEl.style.display = 'none';
+        canvasEl.style.display = 'block';
+        
+        const chartLabels = entries.map(x => x.d);
+        const chartData = entries.map(x => x.w);
+        
+        const lineDataset = {
+          data: chartData,
+          borderColor: '#1D9E75',
+          borderWidth: 2,
+          tension: 0.3,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#1D9E75',
+          pointRadius: entries.length === 1 ? 5 : 3,
+          fill: false
+        };
+
+        const chartOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(128,128,128,0.1)' },
+              ticks: { color: '#888', font: { size: 11, family: 'Inter' } }
+            },
+            y: {
+              grid: { color: 'rgba(128,128,128,0.1)' },
+              ticks: { color: '#888', font: { size: 11, family: 'Inter' } },
+              min: Math.max(0, Math.min(...chartData) - 5),
+              max: Math.max(...chartData) + 5
+            }
+          }
+        };
+
+        const ctx = canvasEl.getContext('2d');
+        if (chartRegistry.trackerLift) chartRegistry.trackerLift.destroy();
+        chartRegistry.trackerLift = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: chartLabels,
+            datasets: [lineDataset]
+          },
+          options: chartOptions
+        });
+      }
+    }
+
     // Master render binder
     function renderAll() {
       renderWorkoutExercises();
@@ -2515,8 +3060,6 @@
     // Startup
     window.addEventListener('load', () => {
       initAppState();
-      
-      // Redraw canvas on window resize
       window.addEventListener('resize', () => {
         if (currentTab === 'timeline') drawChart();
       });
