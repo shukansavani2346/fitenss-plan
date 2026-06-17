@@ -2901,10 +2901,47 @@
       }, 1000);
     }
 
+    function getStorageKey(baseName) {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No user is currently logged in.");
+      }
+      return `fitbharat_${baseName}_${user.uid}`;
+    }
+
     // Load User Data from Firestore
     async function loadUserData(user) {
       document.getElementById('user-email-display').textContent = user.email;
       
+      // Migration: Check if old unscoped data exists and scoped data doesn't
+      const oldStateKey = "shukan_fitness_state";
+      const oldWeightsKey = "shukan_weights";
+      const oldLiftsKey = "shukan_lifts";
+      
+      const newStateKey = `fitbharat_state_${user.uid}`;
+      const newWeightsKey = `fitbharat_weights_${user.uid}`;
+      const newLiftsKey = `fitbharat_lifts_${user.uid}`;
+      
+      const oldStateVal = localStorage.getItem(oldStateKey);
+      const newStateVal = localStorage.getItem(newStateKey);
+      
+      if (oldStateVal && !newStateVal) {
+        localStorage.setItem(newStateKey, oldStateVal);
+        const oldWeightsVal = localStorage.getItem(oldWeightsKey);
+        if (oldWeightsVal) {
+          localStorage.setItem(newWeightsKey, oldWeightsVal);
+        }
+        const oldLiftsVal = localStorage.getItem(oldLiftsKey);
+        if (oldLiftsVal) {
+          localStorage.setItem(newLiftsKey, oldLiftsVal);
+        }
+        // Clean up old keys
+        localStorage.removeItem(oldStateKey);
+        localStorage.removeItem(oldWeightsKey);
+        localStorage.removeItem(oldLiftsKey);
+        console.log("Migrated local cached data to user-scoped keys successfully.");
+      }
+
       const docRef = db.collection("users").doc(user.uid);
       try {
         const doc = await docRef.get();
@@ -2912,13 +2949,13 @@
           const data = doc.data();
           
           if (data.state) {
-            localStorage.setItem("shukan_fitness_state", JSON.stringify(data.state));
+            localStorage.setItem(getStorageKey('state'), JSON.stringify(data.state));
           }
           if (data.weights) {
-            localStorage.setItem("shukan_weights", JSON.stringify(data.weights));
+            localStorage.setItem(getStorageKey('weights'), JSON.stringify(data.weights));
           }
           if (data.lifts) {
-            localStorage.setItem("shukan_lifts", JSON.stringify(data.lifts));
+            localStorage.setItem(getStorageKey('lifts'), JSON.stringify(data.lifts));
           }
           
           console.log("Loaded user data from Firestore.");
@@ -2955,7 +2992,7 @@
       }
     }
 
-    // Clear Local Storage Cache on Logout
+    // Clear Local Storage Cache on Logout (keeps scoped keys, deletes old unscoped ones)
     function clearLocalCache() {
       localStorage.removeItem("shukan_fitness_state");
       localStorage.removeItem("shukan_weights");
@@ -3244,7 +3281,7 @@
       await generateAiWorkout(false);
       
       // Sync weight logs as well
-      localStorage.setItem("shukan_weights", JSON.stringify([{ d: getTodayString(), w: weight }]));
+      localStorage.setItem(getStorageKey('weights'), JSON.stringify([{ d: getTodayString(), w: weight }]));
       
       showToast("Profile onboarded successfully! Welcome to FitBharat.", "success");
       
@@ -3497,7 +3534,7 @@
 
     // Initialize state
     function initAppState() {
-      const stored = localStorage.getItem("shukan_fitness_state");
+      const stored = localStorage.getItem(getStorageKey('state'));
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -3628,7 +3665,7 @@
     }
 
     function saveState() {
-      localStorage.setItem("shukan_fitness_state", JSON.stringify(state));
+      localStorage.setItem(getStorageKey('state'), JSON.stringify(state));
       triggerDbSync();
     }
 
@@ -4212,9 +4249,9 @@
 
     function exportStateData() {
       const data = {
-        shukan_fitness_state: localStorage.getItem("shukan_fitness_state"),
-        shukan_lifts: localStorage.getItem("shukan_lifts"),
-        shukan_weights: localStorage.getItem("shukan_weights")
+        shukan_fitness_state: localStorage.getItem(getStorageKey('state')),
+        shukan_lifts: localStorage.getItem(getStorageKey('lifts')),
+        shukan_weights: localStorage.getItem(getStorageKey('weights'))
       };
       
       const jsonString = JSON.stringify(data, null, 2);
@@ -4244,13 +4281,13 @@
         try {
           const data = JSON.parse(e.target.result);
           if (data.shukan_fitness_state) {
-            localStorage.setItem("shukan_fitness_state", data.shukan_fitness_state);
+            localStorage.setItem(getStorageKey('state'), data.shukan_fitness_state);
           }
           if (data.shukan_lifts) {
-            localStorage.setItem("shukan_lifts", data.shukan_lifts);
+            localStorage.setItem(getStorageKey('lifts'), data.shukan_lifts);
           }
           if (data.shukan_weights) {
-            localStorage.setItem("shukan_weights", data.shukan_weights);
+            localStorage.setItem(getStorageKey('weights'), data.shukan_weights);
           }
           
           showToast("Data imported successfully! Reloading...", "success");
@@ -4537,7 +4574,10 @@
       try {
         const response = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await auth.currentUser.getIdToken()}`
+          },
           body: JSON.stringify({ base64Data, mimeType })
         });
         
@@ -4729,7 +4769,10 @@
       try {
         const response = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await auth.currentUser.getIdToken()}`
+          },
           body: JSON.stringify({ textVal })
         });
         
@@ -5348,7 +5391,7 @@
         
         if (!lifts[selectedLiftType]) lifts[selectedLiftType] = [];
         lifts[selectedLiftType].push({ d: today, w: weightTarget, r: poseCheckedRepCount });
-        localStorage.setItem("shukan_lifts", JSON.stringify(lifts));
+        localStorage.setItem(getStorageKey('lifts'), JSON.stringify(lifts));
         triggerDbSync();
         
         // Award GP
@@ -5593,61 +5636,11 @@
 
     function clearWeightHistory() {
       if (confirm("Are you sure you want to clear your logged weight history?")) {
-        localStorage.removeItem("shukan_weights");
+        localStorage.removeItem(getStorageKey('weights'));
         renderTrackerAndDashboard();
       }
     }
 
-    function renderWeightMilestones() {
-      // Synchronized with Tracker data
-      const weights = getWeightLogs();
-      const latestWeight = weights.length > 0 ? weights[weights.length - 1].w : (parseFloat(state.userProfile.weight) || 56.0);
-      
-      document.getElementById('header-weight-lbl').textContent = `${latestWeight.toFixed(1)} kg`;
-      document.getElementById('current-weight-display').textContent = `${latestWeight.toFixed(1)} kg`;
-      document.getElementById('widget-weight').textContent = `${latestWeight.toFixed(1)} kg`;
-      
-      // BMI computation using user height
-      const heightInM = (parseFloat(state.userProfile.height) / 100) || 1.7;
-      const bmi = (latestWeight / (heightInM * heightInM)).toFixed(1);
-      let status = 'lean';
-      if (bmi >= 25) status = 'overweight';
-      else if (bmi >= 18.5) status = 'normal';
-      document.getElementById('widget-bmi').textContent = `BMI ${bmi} — ${status}`;
-      
-      // Progress calculations based on starting weight and target weight
-      const startingWeight = weights.length > 0 ? weights[0].w : (parseFloat(state.userProfile.weight) || 56.0);
-      const targetWeight = parseFloat(state.userProfile.targetWeight) || 70.0;
-      
-      let pct = 0;
-      if (targetWeight > startingWeight) {
-        // Bulking
-        const range = targetWeight - startingWeight;
-        const progress = latestWeight - startingWeight;
-        pct = range > 0 ? Math.max(0, Math.min(Math.round((progress / range) * 100), 100)) : 100;
-      } else if (targetWeight < startingWeight) {
-        // Cutting
-        const range = startingWeight - targetWeight;
-        const progress = startingWeight - latestWeight;
-        pct = range > 0 ? Math.max(0, Math.min(Math.round((progress / range) * 100), 100)) : 100;
-      } else {
-        pct = 100;
-      }
-      
-      document.getElementById('weight-progress-bar').style.width = `${pct}%`;
-      document.getElementById('weight-percent-badge').textContent = `${pct}%`;
-      
-      const remaining = Math.abs(targetWeight - latestWeight);
-      if (document.getElementById('weight-remaining-lbl')) {
-        if (latestWeight < targetWeight) {
-          document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build.`;
-        } else if (latestWeight > targetWeight) {
-          document.getElementById('weight-remaining-lbl').textContent = `Remaining target: -${remaining.toFixed(1)} kg to lose.`;
-        } else {
-          document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintenance mode active.`;
-        }
-      }
-    }
 
     // Original Timeline Graph
     function drawChart() {
@@ -5845,7 +5838,7 @@
     // ==================== RE-DEFINED TRACKER SCRIPTING ====================
 
     function getWeightLogs() {
-      const stored = localStorage.getItem("shukan_weights");
+      const stored = localStorage.getItem(getStorageKey('weights'));
       if (stored) {
         try {
           const arr = JSON.parse(stored);
@@ -5858,8 +5851,9 @@
       return [];
     }
 
+    // Load Lift Logs
     function getLiftLogs() {
-      const stored = localStorage.getItem("shukan_lifts");
+      const stored = localStorage.getItem(getStorageKey('lifts'));
       if (stored) {
         try {
           const obj = JSON.parse(stored);
@@ -5871,6 +5865,7 @@
       return {};
     }
 
+    // Save a new weight entry dynamically
     function saveNewWeightEntry(dateVal, weightVal) {
       let weights = getWeightLogs();
       const existingIdx = weights.findIndex(x => x.d === dateVal);
@@ -5880,7 +5875,7 @@
         weights.push({ d: dateVal, w: parseFloat(weightVal.toFixed(1)) });
       }
       weights.sort((a, b) => new Date(a.d) - new Date(b.d));
-      localStorage.setItem("shukan_weights", JSON.stringify(weights));
+      localStorage.setItem(getStorageKey('weights'), JSON.stringify(weights));
       renderTrackerAndDashboard();
       triggerDbSync();
     }
@@ -5901,16 +5896,18 @@
       dateEl.value = getTodayString();
     }
 
+    // Delete a logged weight entry
     function deleteWeightLog(date) {
       if (confirm(`Delete weight log for ${date}?`)) {
         let weights = getWeightLogs();
         weights = weights.filter(x => x.d !== date);
-        localStorage.setItem("shukan_weights", JSON.stringify(weights));
+        localStorage.setItem(getStorageKey('weights'), JSON.stringify(weights));
         renderTrackerAndDashboard();
         triggerDbSync();
       }
     }
 
+    // Save a lift entry
     function saveLiftLog() {
       const valEl = document.getElementById('tracker-lift-weight');
       const repsEl = document.getElementById('tracker-lift-reps');
@@ -5941,7 +5938,7 @@
         lifts[selectedLiftType] = lifts[selectedLiftType].slice(-20);
       }
       
-      localStorage.setItem("shukan_lifts", JSON.stringify(lifts));
+      localStorage.setItem(getStorageKey('lifts'), JSON.stringify(lifts));
       
       valEl.value = '';
       repsEl.value = '';
@@ -5967,7 +5964,11 @@
 
     function renderTrackerAndDashboard() {
       const weights = getWeightLogs();
-      const latestWeight = weights.length > 0 ? weights[weights.length - 1].w : 56.0;
+      const latestWeight = weights.length > 0 ? weights[weights.length - 1].w : (parseFloat(state.userProfile.weight) || 56.0);
+      
+      const heightInM = (parseFloat(state.userProfile.height) / 100) || 1.7;
+      const startingWeight = weights.length > 0 ? weights[0].w : (parseFloat(state.userProfile.weight) || 56.0);
+      const targetWeight = parseFloat(state.userProfile.targetWeight) || 70.0;
       
       // Update Overview stats
       document.getElementById('dash-curr-weight').textContent = `${latestWeight.toFixed(1)} kg`;
@@ -5984,17 +5985,40 @@
       }
       
       // BMI computation
-      const bmi = (latestWeight / (1.7 * 1.7)).toFixed(1);
-      let bmiStatus = 'lean';
-      if (bmi >= 25) bmiStatus = 'overweight';
-      else if (bmi >= 18.5) bmiStatus = 'normal';
+      const bmi = (latestWeight / (heightInM * heightInM)).toFixed(1);
+      const bmiVal = parseFloat(bmi);
+      let bmiStatus = 'normal';
+      if (bmiVal < 18.5) {
+        bmiStatus = 'underweight';
+      } else if (bmiVal < 25) {
+        bmiStatus = 'normal';
+      } else if (bmiVal < 30) {
+        bmiStatus = 'overweight';
+      } else {
+        bmiStatus = 'obese';
+      }
+      
       document.getElementById('dash-curr-bmi').textContent = `BMI ${bmi} — ${bmiStatus}`;
       if (document.getElementById('widget-bmi')) {
         document.getElementById('widget-bmi').textContent = `BMI ${bmi} — ${bmiStatus}`;
       }
       
       // Progress %
-      const progressPercent = Math.max(0, Math.min(100, Math.round(((latestWeight - 56) / (70 - 56)) * 100)));
+      let progressPercent = 0;
+      if (targetWeight > startingWeight) {
+        // Bulking
+        const range = targetWeight - startingWeight;
+        const progress = latestWeight - startingWeight;
+        progressPercent = range > 0 ? Math.max(0, Math.min(Math.round((progress / range) * 100), 100)) : 100;
+      } else if (targetWeight < startingWeight) {
+        // Cutting
+        const range = startingWeight - targetWeight;
+        const progress = startingWeight - latestWeight;
+        progressPercent = range > 0 ? Math.max(0, Math.min(Math.round((progress / range) * 100), 100)) : 100;
+      } else {
+        progressPercent = 100;
+      }
+
       document.getElementById('dash-progress-pct').textContent = `${progressPercent}%`;
       if (document.getElementById('weight-percent-badge')) {
         document.getElementById('weight-percent-badge').textContent = `${progressPercent}%`;
@@ -6006,12 +6030,24 @@
       // Days logged
       document.getElementById('dash-days-logged').textContent = `${weights.length} day${weights.length === 1 ? '' : 's'}`;
       
-      const remaining = 70.0 - latestWeight;
+      // Goal direction description
+      const goalDirection = state.userProfile.goal;
+      const remaining = Math.abs(targetWeight - latestWeight);
       if (document.getElementById('weight-remaining-lbl')) {
-        if (remaining > 0) {
-          document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build lean muscle naturally.`;
-        } else {
-          document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintenance mode active.`;
+        if (goalDirection === 'maintain' || latestWeight === targetWeight) {
+          document.getElementById('weight-remaining-lbl').textContent = `Goal status: maintaining.`;
+        } else if (goalDirection === 'cut') {
+          if (latestWeight > targetWeight) {
+            document.getElementById('weight-remaining-lbl').textContent = `Remaining target: -${remaining.toFixed(1)} kg to lose.`;
+          } else {
+            document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintaining mode active.`;
+          }
+        } else { // bulk
+          if (latestWeight < targetWeight) {
+            document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build.`;
+          } else {
+            document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintaining mode active.`;
+          }
         }
       }
 
@@ -6038,19 +6074,50 @@
         }
       }
 
-      // Render milestones progress bars inside Tracker tab
-      const milestones = [
-        { label: "Phase 1", range: "59–60 kg", max: 60, time: "Month 1–2" },
-        { label: "Phase 2", range: "63–64 kg", max: 64, time: "Month 3–5" },
-        { label: "Phase 3", range: "66–67 kg", max: 67, time: "Month 6–9" },
-        { label: "Goal", range: "70 kg", max: 70, time: "Month 12–18" }
-      ];
+      // Render milestones progress bars inside Tracker tab dynamically divided into 4 equal phases
+      const milestones = [];
+      const totalDiff = targetWeight - startingWeight;
+      const step = totalDiff / 4;
+
+      for (let i = 1; i <= 4; i++) {
+        const milestoneMax = startingWeight + i * step;
+        const prevMilestoneMax = startingWeight + (i - 1) * step;
+        
+        let label = `Phase ${i}`;
+        let time = "";
+        if (i === 1) time = "Month 1–2";
+        else if (i === 2) time = "Month 3–5";
+        else if (i === 3) time = "Month 6–9";
+        else if (i === 4) {
+          label = "Goal";
+          time = "Month 12–18";
+        }
+
+        const rangeStr = `${prevMilestoneMax.toFixed(1)}–${milestoneMax.toFixed(1)} kg`;
+        milestones.push({
+          label,
+          range: rangeStr,
+          max: milestoneMax,
+          time
+        });
+      }
       
       const milestoneContainer = document.getElementById('tracker-milestone-list');
       if (milestoneContainer) {
         let mHtml = '';
         milestones.forEach(m => {
-          const pct = Math.max(0, Math.min(100, Math.round(((latestWeight - 56) / (m.max - 56)) * 100)));
+          let pct = 0;
+          if (targetWeight > startingWeight) {
+            const range = m.max - startingWeight;
+            const progress = latestWeight - startingWeight;
+            pct = range > 0 ? Math.max(0, Math.min(100, Math.round((progress / range) * 100))) : 100;
+          } else if (targetWeight < startingWeight) {
+            const range = startingWeight - m.max;
+            const progress = startingWeight - latestWeight;
+            pct = range > 0 ? Math.max(0, Math.min(100, Math.round((progress / range) * 100))) : 100;
+          } else {
+            pct = 100;
+          }
           mHtml += `
             <div style="margin-bottom:12px;">
               <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:4px;">
@@ -6353,7 +6420,7 @@
       renderRoutines();
       renderWater();
       renderMilestones();
-      renderWeightMilestones();
+      renderTrackerAndDashboard();
       renderTimelineChecks();
       renderGroceries();
       drawChart();
@@ -6490,7 +6557,10 @@
       try {
         const response = await fetch('/api/generate-workout', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await auth.currentUser.getIdToken()}`
+          },
           body: JSON.stringify(payload)
         });
         
