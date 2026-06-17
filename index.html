@@ -8,7 +8,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -23,38 +23,38 @@
   <style>
     :root {
       /* Palette */
-      --color-bg-pure: #000000;
-      --color-card-bg: rgba(18, 18, 22, 0.75);
-      --color-card-border: rgba(255, 255, 255, 0.08);
-      --color-card-border-glow: rgba(255, 255, 255, 0.15);
+      --color-bg-pure: #090a0f;
+      --color-card-bg: rgba(255, 255, 255, 0.02);
+      --color-card-border: rgba(255, 255, 255, 0.04);
+      --color-card-border-glow: rgba(255, 255, 255, 0.08);
       
-      --color-primary: #2e5bff;
-      --color-secondary: #9d50ff;
+      --color-primary: #3b82f6;
+      --color-secondary: #8b5cf6;
       --color-success: #10b981;
       --color-warning: #f59e0b;
       --color-danger: #ef4444;
       
-      --color-text-primary: #e5e2e1;
-      --color-text-secondary: #9497a1;
-      --color-text-muted: #5e616b;
+      --color-text-primary: #f3f4f6;
+      --color-text-secondary: #9ca3af;
+      --color-text-muted: #6b7280;
       
       /* Gradients */
       --grad-primary: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
       --grad-success: linear-gradient(135deg, #059669, var(--color-success));
-      --grad-card: linear-gradient(135deg, rgba(25, 25, 30, 0.55), rgba(10, 10, 12, 0.75));
+      --grad-card: linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.005));
       
-      /* Custom Easing from Emil Kowalski guidelines */
-      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      /* Custom Easing from Emil Kowalski guidelines - spring physics */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
       --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
       
       --radius-sm: 8px;
       --radius-md: 14px;
-      --radius-lg: 24px;
+      --radius-lg: 20px;
       --radius-full: 9999px;
 
       /* Growth Tracker Required Style Variables */
       --color-background-primary: var(--grad-card);
-      --color-background-secondary: rgba(255, 255, 255, 0.03);
+      --color-background-secondary: rgba(255, 255, 255, 0.01);
       --color-border-tertiary: var(--color-card-border);
       --border-radius-lg: var(--radius-lg);
       --border-radius-md: var(--radius-md);
@@ -68,9 +68,9 @@
     }
 
     body {
-      background-color: var(--color-bg-pure);
+      background: radial-gradient(circle at top, #14162a 0%, #07080c 100%) fixed;
       color: var(--color-text-primary);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
       display: flex;
@@ -86,8 +86,8 @@
       height: 400px;
       border-radius: var(--radius-full);
       background: var(--color-secondary);
-      filter: blur(140px);
-      opacity: 0.12;
+      filter: blur(150px);
+      opacity: 0.08;
       pointer-events: none;
       z-index: 0;
     }
@@ -100,8 +100,8 @@
       height: 400px;
       border-radius: var(--radius-full);
       background: var(--color-primary);
-      filter: blur(140px);
-      opacity: 0.1;
+      filter: blur(150px);
+      opacity: 0.07;
       pointer-events: none;
       z-index: 0;
     }
@@ -111,25 +111,25 @@
       width: 100%;
       max-width: 480px;
       min-height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      border-left: 1px solid rgba(255, 255, 255, 0.05);
-      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(7, 8, 12, 0.45);
+      border-left: 1px solid rgba(255, 255, 255, 0.03);
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
       display: flex;
       flex-direction: column;
       position: relative;
       z-index: 1;
-      padding-bottom: 90px; /* Space for bottom navigation */
+      padding-bottom: 96px; /* Space for bottom floating navigation */
     }
 
     /* Premium Sticky Header */
     header {
       position: sticky;
       top: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--color-card-border);
-      padding: 18px 20px;
+      background: rgba(7, 8, 12, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 16px 20px;
       z-index: 100;
       display: flex;
       justify-content: space-between;
@@ -137,9 +137,9 @@
     }
 
     header h1 {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       background: var(--grad-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -149,30 +149,30 @@
     }
 
     .profile-badge {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: var(--radius-full);
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       color: var(--color-text-primary);
-      box-shadow: 0 0 15px rgba(157, 80, 255, 0.2);
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.15);
     }
 
     /* Main Scrollable View */
     .content-view {
-      padding: 20px;
+      padding: 16px;
       flex: 1;
     }
 
     /* Screen Sections with Transitions (Emil Kowalski rule: custom curve, snappy, no scale(0)) */
     .section {
       display: none;
-      animation: tabEnter 220ms var(--ease-out) forwards;
+      animation: tabEnter 250ms var(--ease-out) forwards;
     }
 
     .section.active {
@@ -182,7 +182,7 @@
     @keyframes tabEnter {
       from {
         opacity: 0;
-        transform: scale(0.97) translateY(8px);
+        transform: scale(0.98) translateY(6px);
       }
       to {
         opacity: 1;
@@ -192,19 +192,22 @@
 
     /* Glassmorphic Cards */
     .card {
-      background: var(--color-background-primary);
-      border: 0.5px solid var(--color-border-tertiary);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.04);
       border-radius: var(--border-radius-lg);
-      padding: 1rem 1.25rem;
+      padding: 1.25rem;
       margin-bottom: 16px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      transition: border-color 200ms var(--ease-out);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transition: all 250ms var(--ease-out);
     }
 
     .card:hover {
       border-color: var(--color-card-border-glow);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
     }
 
     .card-title {
@@ -333,24 +336,27 @@
       margin-top: 2px;
     }
 
-    /* Tabs bottom navigation - Highly responsive flex logic to support 7 tabs */
+    /* Floating bottom navigation bar glass dock */
     .bottom-nav {
       position: fixed;
-      bottom: 0;
+      bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      height: 72px;
-      background: rgba(10, 10, 12, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid var(--color-card-border);
+      width: calc(100% - 32px);
+      max-width: 448px;
+      height: 64px;
+      background: rgba(18, 18, 22, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding: 0 2px;
+      padding: 0 8px;
       z-index: 1000;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      transition: all 300ms var(--ease-out);
     }
 
     .nav-btn {
@@ -363,25 +369,28 @@
       color: var(--color-text-muted);
       flex: 1;
       min-width: 0;
-      height: 52px;
-      border-radius: var(--radius-md);
-      gap: 3px;
+      height: 48px;
+      border-radius: 14px;
+      gap: 2px;
+      transition: all 200ms var(--ease-out);
+      cursor: pointer;
     }
 
     .nav-btn i {
       font-size: 18px;
-      transition: color 150ms var(--ease-out);
+      transition: all 200ms var(--ease-out);
     }
 
     .nav-btn span {
       font-size: 9px;
-      font-weight: 500;
+      font-weight: 600;
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       width: 100%;
-      transition: color 150ms var(--ease-out);
+      transition: all 200ms var(--ease-out);
+      letter-spacing: -0.01em;
     }
 
     .nav-btn.active {
@@ -389,6 +398,7 @@
     }
 
     .nav-btn.active i {
+      transform: translateY(-2px);
       background: var(--grad-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -1688,22 +1698,7 @@
               <b>Skin & Hydration</b>
               <p>80% skin clarity is gut health and hydration. Keep your garlic empty-stomach habit, and add mild sunscreen.</p>
             </div>
-          </div>
-        </div>
-
-        <!-- split switch warning -->
-        <div class="card">
-          <div class="card-title">PPL Split vs. Double Split <i class="ti ti-info-circle"></i></div>
-          <div style="font-size:13px; color:var(--color-text-secondary); line-height:1.5;">
-            Your current split is solid. However, PPL (Push-Pull-Legs) organizes workouts by <b>movement patterns</b> rather than isolation, reducing muscle overlap and optimizing joint recovery. PPL is highly recommended for building structural volume to move from 56 → 70 kg. If you stick with the double split, ensure recovery times are kept consistent.
-          </div>
-        </div>
-      </div>
-
-      <!-- ==================== GROWTH TRACKER SECTION ==================== -->
-      <div id="tracker" class="section">
-        
-        <!-- Weight Log Card -->
+                <!-- Weight Log Card -->
         <div class="card">
           <div class="card-title">Log Daily Weight <i class="ti ti-scale"></i></div>
           <div class="calc-row" style="margin-bottom:12px;">
@@ -1715,22 +1710,6 @@
           <div style="font-size:12px; font-weight:600; color:var(--color-text-secondary); margin-bottom:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">Recent Weight Entries</div>
           <div id="tracker-weight-list" style="max-height:180px; overflow-y:auto;">
             <!-- Dynamically populated (date | weight | delete button) -->
-          </div>
-        </div>
-
-        <!-- Weight Chart Card -->
-        <div class="card">
-          <div class="card-title">Weight Progress Chart <i class="ti ti-chart-line"></i></div>
-          <div class="canvas-container" style="height:200px; background:rgba(0, 0, 0, 0.2); border-radius:var(--radius-md); padding:10px;">
-            <canvas id="tracker-weight-chart"></canvas>
-          </div>
-        </div>
-
-        <!-- Milestone Progress Card -->
-        <div class="card">
-          <div class="card-title">Milestone Progress <i class="ti ti-circle-check"></i></div>
-          <div id="tracker-milestone-list">
-            <!-- 4 milestones hardcoded -->
           </div>
         </div>
 
@@ -1765,64 +1744,64 @@
           </div>
         </div>
 
-        <!-- Metabolic Health (CGM Integration) Card -->
+        <!-- Milestones timeline -->
         <div class="card">
-          <div class="card-title">
-            <span>Metabolic Health & CGM <i class="ti ti-activity" style="color:var(--color-secondary);"></i></span>
-            <span class="badge badge-success" id="metabolic-score-badge">Score: --/100</span>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <div style="font-size:11px; color:var(--color-text-secondary);">Mode: <span id="cgm-mode-lbl" style="font-weight:600; color:var(--color-primary);">Continuous Simulation</span></div>
-            <button class="btn btn-secondary active-scale" style="width:auto; padding:4px 10px; font-size:10px; height:24px;" onclick="toggleCgmMode()">Toggle Mode</button>
-          </div>
-
-          <!-- Glucose stats grid -->
-          <div class="grid-2" style="margin-bottom:12px; gap:8px;">
-            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
-              <span class="label" style="font-size:9px;">Average Glucose</span>
-              <span class="value" id="cgm-avg-val" style="font-size:15px; margin-top:2px;">-- mg/dL</span>
-              <span class="sub" id="cgm-hba1c-sub" style="font-size:9px; margin-top:0;">Est. HbA1c: --%</span>
+          <div class="card-title">Milestones Tracker</div>
+          <div class="timeline-container">
+            <div class="timeline-node active" id="node-m1" onclick="selectMilestone(1)">
+              <div class="timeline-heading">Month 1–2: Adaptation Phase</div>
+              <div class="timeline-desc">Adaptation to PPL volume. Newbie lift strength gains. Target weight: 56 → 59–60 kg. First signs of skin clearing.</div>
             </div>
-            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
-              <span class="label" style="font-size:9px;">Glucose Variability</span>
-              <span class="value" id="cgm-var-val" style="font-size:15px; margin-top:2px;">--%</span>
-              <span class="sub" id="cgm-var-status" style="font-size:9px; margin-top:0; color:var(--color-success);">Optimal (&lt;15%)</span>
+            <div class="timeline-node" id="node-m2" onclick="selectMilestone(2)">
+              <div class="timeline-heading">Month 3–5: Visual Density</div>
+              <div class="timeline-desc">Visibly denser shoulders, chest, arms. Target weight: 61–64 kg. Squat 80kg+, Bench 70kg+, Deadlift 100kg+.</div>
             </div>
-            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
-              <span class="label" style="font-size:9px;">Time In Range (70-110)</span>
-              <span class="value" id="cgm-tir-val" style="font-size:15px; margin-top:2px;">--%</span>
-              <span class="sub" style="font-size:9px; margin-top:0; color:var(--color-success);">Excellent target</span>
+            <div class="timeline-node" id="node-m3" onclick="selectMilestone(3)">
+              <div class="timeline-heading">Month 6–9: Athletic Frame</div>
+              <div class="timeline-desc">Physique shift from skinny to lean-athletic. Target weight: 64–67 kg. Visual definition improvements.</div>
             </div>
-            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
-              <span class="label" style="font-size:9px;">Latest Reading</span>
-              <span class="value" id="cgm-latest-val" style="font-size:15px; margin-top:2px;">-- mg/dL</span>
-              <span class="sub" id="cgm-latest-time" style="font-size:9px; margin-top:0;">No readings</span>
+            <div class="timeline-node" id="node-m4" onclick="selectMilestone(4)">
+              <div class="timeline-heading">Month 12–18: Target physique</div>
+              <div class="timeline-desc">Achieve 70 kg target with clean definition. Proportional, camera-ready natural aesthetic.</div>
             </div>
-          </div>
-
-          <!-- Walk Nudge Alert -->
-          <div id="cgm-spike-nudge" class="alert-card danger" style="display:none; margin-bottom:12px;">
-            <div class="alert-card-icon"><i class="ti ti-walk"></i></div>
-            <div class="alert-card-content" style="flex:1;">
-              <b>Glucose Spike Active!</b>
-              <p style="margin-bottom:6px; color:var(--color-text-secondary);">Your glucose spiked after a high-carb meal. Clear blood sugar naturally using muscle contractions.</p>
-              <button class="btn active-scale" style="height:28px; padding:0 12px; font-size:11px; width:auto;" onclick="simulateWalkToClearSpike()">🏃‍♂️ Log 15-Min Walk (+20 GP)</button>
-            </div>
-          </div>
-
-          <!-- CGM Input Row (Visible only in Manual Mode) -->
-          <div id="cgm-manual-log-row" class="calc-row" style="display:none; margin-bottom:12px;">
-            <input type="number" id="cgm-glucose-val" class="calc-input" placeholder="Glucose (mg/dL)" min="40" max="400">
-            <button class="btn active-scale" style="flex:0.6; padding:0 12px; height:38px;" onclick="logManualGlucose()">Save</button>
-          </div>
-
-          <!-- CGM Chart Canvas -->
-          <div class="canvas-container" style="height:150px; background:rgba(0, 0, 0, 0.2); border-radius:var(--radius-md); padding:10px;">
-            <canvas id="tracker-cgm-chart"></canvas>
           </div>
         </div>
 
+        <!-- Weekly Routine Check-In -->
+        <div class="card">
+          <div class="card-title">Weekly Routine Check-In</div>
+          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc1')">
+            <div class="chk-box" id="timelinecheck-tc1-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>Sunday Morning Weigh-In</b>
+              <p style="font-size:11px; color:var(--color-text-muted);">Weight yourself empty stomach. If stagnant 2 weeks, add 200 cal (another glass of milk + roti).</p>
+            </div>
+          </div>
+          
+          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc2')">
+            <div class="chk-box" id="timelinecheck-tc2-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>Monthly Progress Photo</b>
+              <p style="font-size:11px; color:var(--color-text-muted);">Same lighting, same time. A real visual indicator of structural change.</p>
+            </div>
+          </div>
+
+          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc3')">
+            <div class="chk-box" id="timelinecheck-tc3-chk"><i class="ti ti-check"></i></div>
+            <div class="checklist-label">
+              <b>Progressive Overload Log</b>
+              <p style="font-size:11px; color:var(--color-text-muted);">Ensure bench/squat/deadlift parameters are moving up over time.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- split switch warning -->
+        <div class="card">
+          <div class="card-title">PPL Split vs. Double Split <i class="ti ti-info-circle"></i></div>
+          <div style="font-size:13px; color:var(--color-text-secondary); line-height:1.5;">
+            Your current split is solid. However, PPL (Push-Pull-Legs) organizes workouts by <b>movement patterns</b> rather than isolation, reducing muscle overlap and optimizing joint recovery. PPL is highly recommended for building structural volume to move from 56 → 70 kg. If you stick with the double split, ensure recovery times are kept consistent.
+          </div>
+        </div>
       </div>
 
       <!-- ==================== WORKOUT SECTION ==================== -->
@@ -2059,60 +2038,122 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ==================== GROCERY SECTION ==================== -->
-      <div id="grocery" class="section">
-        <!-- Dashboard stats for shopping -->
-        <div class="card">
-          <div class="card-title">Monthly Shopping Overview <span class="badge badge-success" id="grocery-progress-badge">0% Bought</span></div>
-          <div class="stat-row">
-            <div class="stat" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);">
-              <div class="stat-label">Estimated Cost</div>
-              <div class="stat-value" id="grocery-total-cost">₹0</div>
-              <div class="stat-sub" id="grocery-spent-sub">Spent: ₹0</div>
+        <!-- Collapsible Grocery Checklist -->
+        <details class="card" style="cursor:pointer; padding: 0;">
+          <summary style="font-size:14px; font-weight:700; padding:1.25rem; list-style:none; display:flex; justify-content:space-between; align-items:center; outline:none; user-select:none;">
+            <span style="display:flex; align-items:center; gap:8px;">Monthly Grocery Checklist <i class="ti ti-shopping-cart" style="color:var(--color-primary);"></i></span>
+            <i class="ti ti-chevron-down" style="font-size:16px; color:var(--color-text-secondary);"></i>
+          </summary>
+          <div style="padding: 0 1.25rem 1.25rem; cursor:default;" onclick="event.stopPropagation();">
+            <!-- Monthly Shopping Overview -->
+            <div style="margin-bottom: 16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; margin-bottom:8px;">
+                <span>Monthly Shopping Progress</span>
+                <span class="badge badge-success" id="grocery-progress-badge">0% Bought</span>
+              </div>
+              <div class="stat-row" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:12px;">
+                <div class="stat" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.03); padding:8px; border-radius:10px; text-align:center;">
+                  <div class="stat-label" style="font-size:9px; color:var(--color-text-secondary);">Est. Cost</div>
+                  <div class="stat-value" id="grocery-total-cost" style="font-size:13px; font-weight:700; margin-top:2px;">₹0</div>
+                  <div class="stat-sub" id="grocery-spent-sub" style="font-size:9px; color:var(--color-success); margin-top:2px;">Spent: ₹0</div>
+                </div>
+                <div class="stat" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.03); padding:8px; border-radius:10px; text-align:center;">
+                  <div class="stat-label" style="font-size:9px; color:var(--color-text-secondary);">Remaining</div>
+                  <div class="stat-value" id="grocery-remaining-cost" style="font-size:13px; font-weight:700; margin-top:2px;">₹0</div>
+                  <div class="stat-sub" style="font-size:9px; color:var(--color-text-muted); margin-top:2px;">Dry + Fresh</div>
+                </div>
+                <div class="stat" style="background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.03); padding:8px; border-radius:10px; text-align:center;">
+                  <div class="stat-label" style="font-size:9px; color:var(--color-text-secondary);">Items Left</div>
+                  <div class="stat-value" id="grocery-items-left" style="font-size:13px; font-weight:700; margin-top:2px;">0</div>
+                  <div class="stat-sub" style="font-size:9px; color:var(--color-text-muted); margin-top:2px;">Checklist</div>
+                </div>
+              </div>
+              
+              <div class="bar-container" style="height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden;">
+                <div id="grocery-bar" class="bar-fill" style="width: 0%; height:100%; background:var(--grad-primary); transition:width 300ms var(--ease-out);"></div>
+              </div>
             </div>
-            <div class="stat" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);">
-              <div class="stat-label">Remaining Cost</div>
-              <div class="stat-value" id="grocery-remaining-cost">₹0</div>
-              <div class="stat-sub">Dry + Perishables</div>
-            </div>
-            <div class="stat" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04);">
-              <div class="stat-label">Items Left</div>
-              <div class="stat-value" id="grocery-items-left">0</div>
-              <div class="stat-sub">From list of 32</div>
-            </div>
-          </div>
-          
-          <div class="bar-container">
-            <div class="bar-bg">
-              <div id="grocery-bar" class="bar-fill" style="width: 0%; background:var(--grad-primary);"></div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Dynamic Category lists will be appended here -->
-        <div id="grocery-categories-container"></div>
+            <!-- Dynamic Category lists will be appended here -->
+            <div id="grocery-categories-container"></div>
 
-        <!-- Reset Button -->
-        <div style="margin: 8px 0 16px;">
-          <button class="btn btn-secondary active-scale" onclick="resetGroceries()"><i class="ti ti-refresh"></i> Reset Shopping Checklist</button>
-        </div>
-        
-        <div class="card">
-          <div class="card-title">Shopping Hacks & Pricing Note</div>
-          <div style="font-size:12px; color:var(--color-text-secondary); line-height:1.6;">
-            Prices are estimated Mumbai market rates (June 2026). Staples like rice, wheat, spices, and ghee may already exist at home—deduct them to save cost.
+            <!-- Reset Button -->
+            <div style="margin: 16px 0 12px; display:flex; justify-content:center;">
+              <button class="btn btn-secondary active-scale" style="height:32px; font-size:11px; padding:0 16px; width:auto;" onclick="resetGroceries()"><i class="ti ti-refresh"></i> Reset Shopping Checklist</button>
+            </div>
+            
+            <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; font-size:11px; color:var(--color-text-secondary); line-height:1.5;">
+              <b>Shopping Hacks & Pricing Note:</b> Prices are estimated Mumbai market rates (June 2026). Staples like rice, wheat, spices, and ghee may already exist at home—deduct them to save cost.
+              <div class="action-links" style="margin-top:10px; display:flex; gap:8px;">
+                <button class="action-link active-scale" style="font-size:10px; padding:4px 8px;" onclick="event.stopPropagation(); alert('Meal Prep Tip: Cook beans (rajma, chole) in large batches and freeze. Paneer and milk should be fresh weekly. Pre-soak almonds and moong sprouts daily.')">Meal Prep Tips ↗</button>
+                <button class="action-link active-scale" style="font-size:10px; padding:4px 8px;" onclick="event.stopPropagation(); alert('Stay Under ₹2000: Deduct Paneer (₹520) and replace with Soya Chunks and Double Curd. Buy loose legumes instead of brands. Whey can be skipped in tight budget months.')">Under ₹2000 List ↗</button>
+              </div>
+            </div>
           </div>
-          <div class="action-links" style="margin-top:10px;">
-            <button class="action-link active-scale" onclick="alert('Meal Prep Tip: Cook beans (rajma, chole) in large batches and freeze. Paneer and milk should be fresh weekly. Pre-soak almonds and moong sprouts daily.')">Meal Prep Tips ↗</button>
-            <button class="action-link active-scale" onclick="alert('Stay Under ₹2000: Deduct Paneer (₹520) and replace with Soya Chunks and Double Curd. Buy loose legumes instead of brands. Whey can be skipped in tight budget months.')">Under ₹2000 List ↗</button>
-          </div>
-        </div>
+        </details>
       </div>
 
       <!-- ==================== SKINCARE SECTION ==================== -->
       <div id="skin" class="section">
+        <!-- Metabolic Health (CGM Integration) Card -->
+        <div class="card">
+          <div class="card-title">
+            <span>Metabolic Health & CGM <i class="ti ti-activity" style="color:var(--color-secondary);"></i></span>
+            <span class="badge badge-success" id="metabolic-score-badge">Score: --/100</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-size:11px; color:var(--color-text-secondary);">Mode: <span id="cgm-mode-lbl" style="font-weight:600; color:var(--color-primary);">Continuous Simulation</span></div>
+            <button class="btn btn-secondary active-scale" style="width:auto; padding:4px 10px; font-size:10px; height:24px;" onclick="toggleCgmMode()">Toggle Mode</button>
+          </div>
+
+          <!-- Glucose stats grid -->
+          <div class="grid-2" style="margin-bottom:12px; gap:8px;">
+            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
+              <span class="label" style="font-size:9px;">Average Glucose</span>
+              <span class="value" id="cgm-avg-val" style="font-size:15px; margin-top:2px;">-- mg/dL</span>
+              <span class="sub" id="cgm-hba1c-sub" style="font-size:9px; margin-top:0;">Est. HbA1c: --%</span>
+            </div>
+            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
+              <span class="label" style="font-size:9px;">Glucose Variability</span>
+              <span class="value" id="cgm-var-val" style="font-size:15px; margin-top:2px;">--%</span>
+              <span class="sub" id="cgm-var-status" style="font-size:9px; margin-top:0; color:var(--color-success);">Optimal (&lt;15%)</span>
+            </div>
+            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
+              <span class="label" style="font-size:9px;">Time In Range (70-110)</span>
+              <span class="value" id="cgm-tir-val" style="font-size:15px; margin-top:2px;">--%</span>
+              <span class="sub" style="font-size:9px; margin-top:0; color:var(--color-success);">Excellent target</span>
+            </div>
+            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
+              <span class="label" style="font-size:9px;">Latest Reading</span>
+              <span class="value" id="cgm-latest-val" style="font-size:15px; margin-top:2px;">-- mg/dL</span>
+              <span class="sub" id="cgm-latest-time" style="font-size:9px; margin-top:0;">No readings</span>
+            </div>
+          </div>
+
+          <!-- Walk Nudge Alert -->
+          <div id="cgm-spike-nudge" class="alert-card danger" style="display:none; margin-bottom:12px;">
+            <div class="alert-card-icon"><i class="ti ti-walk"></i></div>
+            <div class="alert-card-content" style="flex:1;">
+              <b>Glucose Spike Active!</b>
+              <p style="margin-bottom:6px; color:var(--color-text-secondary);">Your glucose spiked after a high-carb meal. Clear blood sugar naturally using muscle contractions.</p>
+              <button class="btn active-scale" style="height:28px; padding:0 12px; font-size:11px; width:auto;" onclick="simulateWalkToClearSpike()">🏃‍♂️ Log 15-Min Walk (+20 GP)</button>
+            </div>
+          </div>
+
+          <!-- CGM Input Row (Visible only in Manual Mode) -->
+          <div id="cgm-manual-log-row" class="calc-row" style="display:none; margin-bottom:12px;">
+            <input type="number" id="cgm-glucose-val" class="calc-input" placeholder="Glucose (mg/dL)" min="40" max="400">
+            <button class="btn active-scale" style="flex:0.6; padding:0 12px; height:38px;" onclick="logManualGlucose()">Save</button>
+          </div>
+
+          <!-- CGM Chart Canvas -->
+          <div class="canvas-container" style="height:150px; background:rgba(0, 0, 0, 0.2); border-radius:var(--radius-md); padding:10px;">
+            <canvas id="tracker-cgm-chart"></canvas>
+          </div>
+        </div>
+
         <!-- Water Tracker (Interactive Hydration Widget) -->
         <div class="card">
           <div class="card-title">Water Log (3+ Liters) <span class="badge badge-primary" id="water-progress-badge">0.0L</span></div>
@@ -2228,93 +2269,15 @@
         </div>
       </div>
 
-      <!-- ==================== TIMELINE SECTION ==================== -->
-      <div id="timeline" class="section">
-        
-        <!-- Milestones timeline -->
-        <div class="card">
-          <div class="card-title">Milestones Tracker</div>
-          <div class="timeline-container">
-            <div class="timeline-node active" id="node-m1" onclick="selectMilestone(1)">
-              <div class="timeline-heading">Month 1–2: Adaptation Phase</div>
-              <div class="timeline-desc">Adaptation to PPL volume. Newbie lift strength gains. Target weight: 56 → 59–60 kg. First signs of skin clearing.</div>
-            </div>
-            <div class="timeline-node" id="node-m2" onclick="selectMilestone(2)">
-              <div class="timeline-heading">Month 3–5: Visual Density</div>
-              <div class="timeline-desc">Visibly denser shoulders, chest, arms. Target weight: 61–64 kg. Squat 80kg+, Bench 70kg+, Deadlift 100kg+.</div>
-            </div>
-            <div class="timeline-node" id="node-m3" onclick="selectMilestone(3)">
-              <div class="timeline-heading">Month 6–9: Athletic Frame</div>
-              <div class="timeline-desc">Physique shift from skinny to lean-athletic. Target weight: 64–67 kg. Visual definition improvements.</div>
-            </div>
-            <div class="timeline-node" id="node-m4" onclick="selectMilestone(4)">
-              <div class="timeline-heading">Month 12–18: Target physique</div>
-              <div class="timeline-desc">Achieve 70 kg target with clean definition. Proportional, camera-ready natural aesthetic.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Weight Logger & Canvas Graph -->
-        <div class="card">
-          <div class="card-title">Weight Log History</div>
-          <div class="calc-row">
-            <input type="number" id="weight-log-val" class="calc-input" value="56.0" step="0.1" min="40" max="100">
-            <button class="btn active-scale" style="flex:0.6; padding: 0 16px;" onclick="logWeight()">Log Weight</button>
-          </div>
-          <div class="canvas-container">
-            <canvas id="weight-chart"></canvas>
-          </div>
-          <div style="text-align:right; margin-top:8px;">
-            <button class="btn btn-secondary active-scale" style="display:inline-flex; width:auto; padding:6px 12px; font-size:11px;" onclick="clearWeightHistory()"><i class="ti ti-trash"></i> Reset Graph</button>
-          </div>
-        </div>
-
-        <!-- Check-in Habit cards -->
-        <div class="card">
-          <div class="card-title">Weekly Routine Check-In</div>
-          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc1')">
-            <div class="chk-box" id="timelinecheck-tc1-chk"><i class="ti ti-check"></i></div>
-            <div class="checklist-label">
-              <b>Sunday Morning Weigh-In</b>
-              <p style="font-size:11px; color:var(--color-text-muted);">Weight yourself empty stomach. If stagnant 2 weeks, add 200 cal (another glass of milk + roti).</p>
-            </div>
-          </div>
-          
-          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc2')">
-            <div class="chk-box" id="timelinecheck-tc2-chk"><i class="ti ti-check"></i></div>
-            <div class="checklist-label">
-              <b>Monthly Progress Photo</b>
-              <p style="font-size:11px; color:var(--color-text-muted);">Same lighting, same time. A real visual indicator of structural change.</p>
-            </div>
-          </div>
-
-          <div class="checklist-item active-scale" onclick="toggleTimelineCheck('tc3')">
-            <div class="chk-box" id="timelinecheck-tc3-chk"><i class="ti ti-check"></i></div>
-            <div class="checklist-label">
-              <b>Progressive Overload Log</b>
-              <p style="font-size:11px; color:var(--color-text-muted);">Ensure bench/squat/deadlift parameters are moving up over time.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick AI action buttons -->
-        <div class="action-links">
-          <button class="action-link active-scale" onclick="alert('Protein Tip: Soya chunks, chickpeas, sprouted moong, paneer, and milk are your core vegetarian protein generators. If budget is tight, focus on doubling soya chunks (52% raw protein) and full fat milk.')">Protein Hacks ↗</button>
-          <button class="action-link active-scale" onclick="alert('Weight Stagnation: If your weight has not increased in 2-3 weeks, you are not in a surplus. Immediately add 200 calories (e.g. 1 peanut butter toast or 1 additional roti and curd).')">Not Gaining? ↗</button>
-        </div>
-      </div>
+      <!-- Timeline section removed (consolidated to overview) -->
 
     </div>
 
-    <!-- Sticky Bottom Navigation Bar (Updated for 7 Tabs with Growth Tracker) -->
+    <!-- Sticky Bottom Navigation Bar (Consolidated to 4 Zones) -->
     <div class="bottom-nav">
       <button class="nav-btn active active-scale" id="btn-overview" onclick="switchTab('overview')">
         <i class="ti ti-layout-dashboard"></i>
-        <span>Overview</span>
-      </button>
-      <button class="nav-btn active-scale" id="btn-tracker" onclick="switchTab('tracker')">
-        <i class="ti ti-trending-up"></i>
-        <span>Growth tracker</span>
+        <span>Dashboard</span>
       </button>
       <button class="nav-btn active-scale" id="btn-workout" onclick="switchTab('workout')">
         <i class="ti ti-barbell"></i>
@@ -2322,19 +2285,11 @@
       </button>
       <button class="nav-btn active-scale" id="btn-diet" onclick="switchTab('diet')">
         <i class="ti ti-salad"></i>
-        <span>Diet</span>
-      </button>
-      <button class="nav-btn active-scale" id="btn-grocery" onclick="switchTab('grocery')">
-        <i class="ti ti-shopping-cart"></i>
-        <span>Grocery</span>
+        <span>Nutrition</span>
       </button>
       <button class="nav-btn active-scale" id="btn-skin" onclick="switchTab('skin')">
         <i class="ti ti-sparkles"></i>
-        <span>Skin</span>
-      </button>
-      <button class="nav-btn active-scale" id="btn-timeline" onclick="switchTab('timeline')">
-        <i class="ti ti-calendar"></i>
-        <span>Timeline</span>
+        <span>Insights</span>
       </button>
     </div>
 
@@ -3027,20 +2982,20 @@
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       
-      document.getElementById(tabId).classList.add('active');
-      document.getElementById(`btn-${tabId}`).classList.add('active');
+      const targetSec = document.getElementById(tabId);
+      const targetBtn = document.getElementById(`btn-${tabId}`);
+      if (targetSec) targetSec.classList.add('active');
+      if (targetBtn) targetBtn.classList.add('active');
       
       // Auto redraw charts on entry
-      if (tabId === 'timeline') {
-        setTimeout(drawChart, 100);
-      } else if (tabId === 'tracker') {
+      if (tabId === 'overview') {
         setTimeout(() => {
           renderTrackerAndDashboard();
           renderLiftTracker();
         }, 100);
-      } else if (tabId === 'overview') {
+      } else if (tabId === 'skin') {
         setTimeout(() => {
-          renderTrackerAndDashboard();
+          renderCgmDashboard();
         }, 100);
       }
     }
@@ -5820,9 +5775,6 @@
     // Startup
     window.addEventListener('load', () => {
       initAppState();
-      window.addEventListener('resize', () => {
-        if (currentTab === 'timeline') drawChart();
-      });
     });
   </script>
 </body>
