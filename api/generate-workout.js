@@ -1,0 +1,131 @@
+export default async function handler(request, response) {
+  if (request.method !== 'POST') {
+    return response.status(405).json({ error: 'Method not allowed' });
+  }
+  
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return response.status(500).json({ error: 'GEMINI_API_KEY environment variable is not configured on Vercel.' });
+  }
+  
+  const { userProfile, feedback, previousPlan, weekNumber = 1 } = request.body;
+  if (!userProfile) {
+    return response.status(400).json({ error: 'Missing userProfile in request body.' });
+  }
+
+  const { age, height, weight, sex, activityLevel, goal, equipment, experience, splitPreference, injuries } = userProfile;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  
+  const prompt = `You are an expert exercise scientist, biomechanics specialist, and elite strength coach. 
+Generate a highly personalized 1-week gym workout plan for a user with the following profile:
+- Age: ${age}
+- Height: ${height} cm
+- Weight: ${weight} kg
+- Biological Sex: ${sex}
+- Goal: ${goal}
+- Activity Level: ${activityLevel}
+- Available Equipment: ${equipment || 'Full Gym'} (Options: Full Gym, Dumbbells Only, Bodyweight)
+- Training Experience: ${experience || 'Intermediate'} (Options: Beginner, Intermediate, Advanced)
+- Split Preference: ${splitPreference || 'PPL'} (Options: PPL, Upper/Lower, Bro Split, Full Body)
+- Injuries / Limitations: ${injuries || 'None'}
+
+Rules for injury protection:
+1. If knee pain/injury/soreness is flagged, substitute squats/leg presses with knee-friendly alternatives (e.g. box squats, leg extensions, leg curls, or glute bridges) and add injury warning cues.
+2. If lower back pain/injury is flagged, substitute deadlifts or heavy barbell rows with chest-supported rows, cable pull-throughs, or lat pulldowns.
+3. If shoulder issues are flagged, tuck elbows in presses, avoid deep dips, and replace standard overhead presses with neutral grip shoulder dumbbell presses or lateral raises.
+
+Progressive overload / Sunday adjustment context (if updating from previous week):
+${feedback ? `This is a weekly update. User feedback on the previous week's plan:
+- Joint soreness rating: ${feedback.jointSoreness}/5
+- Recovery/Energy rating: ${feedback.recovery}/5
+- Progressive overload status: ${feedback.overloadStatus} (progressed, stayed_same, regressed)
+- Weekly workouts completed: ${feedback.completedWorkouts} sets checked off.
+- Weekly diet average: ${feedback.avgCalories} kcal, ${feedback.avgProtein}g protein.
+
+Previous Plan:
+${JSON.stringify(previousPlan)}
+
+Instructions for adjustments:
+- If joint soreness is high (>= 4/5) or recovery is very low (<= 2/5), prescribe a DELOAD week or substitute exercises targeting the sore area with machine alternatives.
+- If overloadStatus is "progressed", apply progressive overload for the next week (e.g. increase weight by 2.5kg, or add sets, or adjust rep ranges).
+- If overloadStatus is "stayed_same", keep weights similar but challenge them to hit the upper rep limit.
+- If overloadStatus is "regressed", reduce weight by 5-10% to rebuild strength or adjust target reps.` : 'This is the initial plan setup.'}
+
+Return JSON ONLY in this exact format, with days representing mon, tue, wed, thu, fri, sat, sun. If it is a rest day, set rest: true.
+{
+  "plan_name": "AI Personal Trainer Split",
+  "notes": "Coaching instructions for this week regarding injuries, goals, progressive overload, and form tips.",
+  "week_number": ${weekNumber},
+  "days": {
+    "mon": {
+      "title": "Push Day (Chest/Shoulders/Triceps) or Rest Day",
+      "rest": false,
+      "list": [
+        { "name": "Flat Dumbbell Bench Press", "sets": 3, "reps": "8-12", "rir_target": 2, "cues": "Control descent, tuck elbows 45 degrees" }
+      ]
+    },
+    "tue": {
+      "title": "Pull Day or Rest Day",
+      "rest": false,
+      "list": [
+        { "name": "Lat Pulldowns", "sets": 3, "reps": "10-12", "rir_target": 2, "cues": "Pull with elbows, squeeze shoulder blades" }
+      ]
+    },
+    "wed": {
+      "title": "Rest Day",
+      "rest": true,
+      "list": []
+    },
+    "thu": {
+      "title": "Leg Day or Rest Day",
+      "rest": false,
+      "list": []
+    },
+    "fri": {
+      "title": "Upper Body or Rest Day",
+      "rest": false,
+      "list": []
+    },
+    "sat": {
+      "title": "Lower Body or Rest Day",
+      "rest": false,
+      "list": []
+    },
+    "sun": {
+      "title": "Rest Day",
+      "rest": true,
+      "list": []
+    }
+  }
+}
+Do not wrap in markdown or output any extra text.`;
+
+  try {
+    const geminiRes = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          { parts: [ { text: prompt } ] }
+        ]
+      })
+    });
+    
+    if (!geminiRes.ok) {
+      const errorText = await geminiRes.text();
+      return response.status(geminiRes.status).json({ error: `Gemini API returned error: ${errorText}` });
+    }
+    
+    const data = await geminiRes.json();
+    const textResponse = data.candidates[0].content.parts[0].text;
+    const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    // Parse to ensure valid JSON before returning
+    const parsedData = JSON.parse(cleanJson);
+    return response.status(200).json(parsedData);
+  } catch (error) {
+    console.error("Gemini workout generator proxy error:", error);
+    return response.status(500).json({ error: 'Failed to communicate with Gemini API: ' + error.message });
+  }
+}

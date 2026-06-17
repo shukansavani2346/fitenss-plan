@@ -1428,6 +1428,14 @@
     .toast-notif.warning {
       border-color: var(--color-warning);
     }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-icon {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
   </style>
 </head>
 <body>
@@ -1497,6 +1505,50 @@
             <b>Low Recovery Autoregulator Active</b>
             <p>Your readiness is low. Load has been adjusted by -20% and heavy compound exercises have been swapped for machines to prevent injury.</p>
           </div>
+        </div>
+
+        <!-- Sunday Weekly Review Card -->
+        <div id="sunday-review-card" class="card" style="display:none; border:1px solid var(--color-primary); background:rgba(46, 91, 255, 0.08); margin-bottom:16px; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:-10px; right:-10px; font-size:96px; opacity:0.04; color:var(--color-primary); pointer-events:none;"><i class="ti ti-calendar-event"></i></div>
+          <h3 style="font-size:16px; font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:8px; color:var(--color-primary);"><i class="ti ti-calendar-event"></i> Sunday Weekly Progress Review</h3>
+          <p style="font-size:12px; color:var(--color-text-secondary); margin-bottom:12px; line-height:1.4;">
+            It's Sunday! Let's review your weekly workouts and diet logs to generate your personalized plan for next week with automatic progressive overload.
+          </p>
+          
+          <div class="grid-2" style="margin-bottom:12px; gap:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:11px;">Joint Soreness / Pain</label>
+              <select id="sunday-joint-pain" class="form-input" style="height:32px; font-size:12px; padding:0 8px;">
+                <option value="1">1 - No pain, joints feel great</option>
+                <option value="2">2 - Minor aches, fully manageable</option>
+                <option value="3">3 - Moderate stiffness / clicking</option>
+                <option value="4">4 - Nagging pain (requires exercise swap)</option>
+                <option value="5">5 - Severe pain (requires full joint rest)</option>
+              </select>
+            </div>
+            
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:11px;">Weekly Fatigue / Energy</label>
+              <select id="sunday-recovery-rating" class="form-input" style="height:32px; font-size:12px; padding:0 8px;">
+                <option value="5">5 - Fully recovered, bursting with energy</option>
+                <option value="4">4 - Well rested and motivated</option>
+                <option value="3">3 - Normal fatigue, good training capacity</option>
+                <option value="2">2 - Tired, feeling run down</option>
+                <option value="1">1 - Exhausted, systemic burn out</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label" style="font-size:11px;">Progressive Overload Status</label>
+            <select id="sunday-overload-status" class="form-input" style="height:32px; font-size:12px; padding:0 8px;">
+              <option value="progressed">💪 Progressed (increased weight or reps in my lifts)</option>
+              <option value="stayed_same">⚖️ Stayed Same (matched previous reps and weights)</option>
+              <option value="regressed">📉 Regressed (had to drop weights or struggled with reps)</option>
+            </select>
+          </div>
+          
+          <button class="btn active-scale" style="background:var(--grad-primary); height:36px; padding:0; font-size:12px;" onclick="submitSundayReview()">Complete Week & Generate Next Week's Plan (+50 GP)</button>
         </div>
         
         <!-- Live Dashboard Stat Cards (Added for Growth Tracker) -->
@@ -1775,28 +1827,40 @@
 
       <!-- ==================== WORKOUT SECTION ==================== -->
       <div id="workout" class="section">
+        <!-- Active Workout Plan Header -->
+        <div class="card" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border-color:rgba(255,255,255,0.04); padding:10px 14px;">
+          <div>
+            <div style="font-size:10px; text-transform:uppercase; color:var(--color-text-secondary); font-weight:600; letter-spacing:0.04em;" id="workout-week-num">Week 1</div>
+            <div style="font-size:14px; font-weight:700; color:var(--color-primary);" id="workout-plan-name">Standard PPL Split</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn active-scale" style="height:28px; width:auto; padding:0 10px; font-size:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);" onclick="triggerSundayReviewDemo()"><i class="ti ti-adjustments"></i> Test Sunday Review</button>
+            <button class="btn active-scale" style="height:28px; width:auto; padding:0 10px; font-size:10px; background:var(--grad-primary);" onclick="generateNewAiWorkoutPlan()"><i class="ti ti-rotate"></i> AI Generate</button>
+          </div>
+        </div>
+
         <!-- Horizontal Scroll Weekday Selector -->
         <div class="scroll-row" id="workout-day-row">
           <div class="day-pill active active-scale" onclick="selectWorkoutDay('mon')">
-            <div class="name">Mon</div><div class="short">Push A</div>
+            <div class="name">Mon</div><div class="short" id="day-lbl-mon">Push A</div>
           </div>
           <div class="day-pill active-scale" onclick="selectWorkoutDay('tue')">
-            <div class="name">Tue</div><div class="short">Pull A</div>
+            <div class="name">Tue</div><div class="short" id="day-lbl-tue">Pull A</div>
           </div>
           <div class="day-pill active-scale" onclick="selectWorkoutDay('wed')">
-            <div class="name">Wed</div><div class="short">Legs A</div>
+            <div class="name">Wed</div><div class="short" id="day-lbl-wed">Legs A</div>
           </div>
           <div class="day-pill active-scale" onclick="selectWorkoutDay('thu')">
-            <div class="name">Thu</div><div class="short">Push B</div>
+            <div class="name">Thu</div><div class="short" id="day-lbl-thu">Push B</div>
           </div>
           <div class="day-pill active-scale" onclick="selectWorkoutDay('fri')">
-            <div class="name">Fri</div><div class="short">Pull B</div>
+            <div class="name">Fri</div><div class="short" id="day-lbl-fri">Pull B</div>
           </div>
           <div class="day-pill active-scale" onclick="selectWorkoutDay('sat')">
-            <div class="name">Sat</div><div class="short">Legs B</div>
+            <div class="name">Sat</div><div class="short" id="day-lbl-sat">Legs B</div>
           </div>
           <div class="day-pill rest active-scale" onclick="selectWorkoutDay('sun')">
-            <div class="name">Sun</div><div class="short">Rest</div>
+            <div class="name">Sun</div><div class="short" id="day-lbl-sun">Rest</div>
           </div>
         </div>
 
@@ -2302,11 +2366,40 @@
         <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
       </div>
       
-      <!-- API Key -->
-      <div class="form-group">
-        <label class="form-label">Google Gemini API Key</label>
-        <input type="password" id="settings-api-key" class="form-input" placeholder="AI Studio API Key (for food scanning & voice parsing)">
-        <p style="font-size:10px; color:var(--color-text-muted); margin-top:4px;">Saved locally in your browser storage.</p>
+      <!-- Onboarding Parameters & Workout Preference -->
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label class="form-label">Available Equipment</label>
+          <select id="settings-equipment" class="form-input">
+            <option value="Full Gym">Full Gym</option>
+            <option value="Dumbbells Only">Dumbbells Only</option>
+            <option value="Bodyweight">Bodyweight / Home</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Training Experience</label>
+          <select id="settings-experience" class="form-input">
+            <option value="Beginner">Beginner (&lt; 1 year)</option>
+            <option value="Intermediate" selected>Intermediate (1-3 years)</option>
+            <option value="Advanced">Advanced (3+ years)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label class="form-label">Workout Split Preference</label>
+          <select id="settings-split-pref" class="form-input">
+            <option value="PPL">Push-Pull-Legs (PPL)</option>
+            <option value="Upper/Lower">Upper/Lower Split</option>
+            <option value="Bro Split">Bro Split (Bodypart Split)</option>
+            <option value="Full Body">Full Body Split</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Injuries / Limitations</label>
+          <input type="text" id="settings-injuries" class="form-input" placeholder="e.g. Knee soreness, back ache, or None">
+        </div>
       </div>
       
       <!-- Profile Stats -->
@@ -2408,6 +2501,13 @@
       
       <button class="btn active-scale" onclick="saveSettings()">Save & Update Profile</button>
     </div>
+  </div>
+
+  <!-- AI Workout Loading Overlay -->
+  <div id="ai-loading-overlay" class="modal-overlay" style="display:none; z-index: 10000; background: rgba(0,0,0,0.85); flex-direction:column; align-items:center; justify-content:center; gap: 16px;">
+    <div style="font-size: 32px; color: var(--color-primary);"><i class="ti ti-loader spin-icon"></i></div>
+    <div style="font-size: 16px; font-weight: 700; color: #fff;" id="ai-loading-title">Generating AI Plan...</div>
+    <div style="font-size: 12px; color: var(--color-text-secondary); text-align: center; max-width: 280px;" id="ai-loading-subtitle">Gemini is designing a custom science-backed progressive overloaded plan.</div>
   </div>
 
   <!-- Achievements / Badges Modal -->
@@ -2549,7 +2649,7 @@
   <!-- State logic & data -->
   <script>
     // Master data
-    const workouts = {
+    const defaultWorkouts = {
       mon: {
         title: "Push A — Chest / Shoulder / Tricep",
         list: [
@@ -2751,7 +2851,12 @@
         cycleLength: 28,
         sleepHrs: 7.5,
         hrv: 65,
-        rhr: 59
+        rhr: 59,
+        // AI workout parameters
+        equipment: "Full Gym",
+        experience: "Intermediate",
+        splitPreference: "PPL",
+        injuries: ""
       },
       gpPoints: 0,
       streak: 0,
@@ -2765,7 +2870,9 @@
         'Squat': 60,
         'Deadlift': 80,
         'OHP': 30
-      }
+      },
+      workouts: null,
+      currentWorkoutWeek: 1
     };
 
     // Chart registry to avoid canvas conflicts
@@ -2799,6 +2906,8 @@
           if (parsed.glucoseReadings) state.glucoseReadings = parsed.glucoseReadings;
           if (parsed.cgmMode) state.cgmMode = parsed.cgmMode;
           if (parsed.liftPRs) state.liftPRs = { ...state.liftPRs, ...parsed.liftPRs };
+          if (parsed.workouts) state.workouts = parsed.workouts;
+          if (parsed.currentWorkoutWeek !== undefined) state.currentWorkoutWeek = parsed.currentWorkoutWeek;
 
           // Reset daily checks if date changes
           if (parsed.date === getTodayString()) {
@@ -2822,6 +2931,12 @@
         // First time initialization
         state.lastActiveDate = getTodayString();
         state.streak = 1;
+        saveState();
+      }
+
+      // Ensure state.workouts is initialized
+      if (!state.workouts) {
+        state.workouts = JSON.parse(JSON.stringify(defaultWorkouts));
         saveState();
       }
       
@@ -2877,7 +2992,6 @@
 
     function populateSettingsInputs() {
       const p = state.userProfile;
-      document.getElementById('settings-api-key').value = p.geminiApiKey || '';
       document.getElementById('settings-weight').value = p.weight;
       document.getElementById('settings-height').value = p.height;
       document.getElementById('settings-age').value = p.age;
@@ -2885,6 +2999,12 @@
       document.getElementById('settings-activity').value = p.activityLevel;
       document.getElementById('settings-goal').value = p.goal;
       document.getElementById('settings-diet').value = p.dietPreference;
+      
+      // AI workout options
+      document.getElementById('settings-equipment').value = p.equipment || 'Full Gym';
+      document.getElementById('settings-experience').value = p.experience || 'Intermediate';
+      document.getElementById('settings-split-pref').value = p.splitPreference || 'PPL';
+      document.getElementById('settings-injuries').value = p.injuries || '';
       
       // Female options
       document.getElementById('settings-cycle-sync').checked = p.cycleSyncing;
@@ -2962,16 +3082,40 @@
     }
 
     function renderWorkoutExercises() {
-      const workout = workouts[selectedWorkoutDay];
+      if (!state.workouts) {
+        state.workouts = JSON.parse(JSON.stringify(defaultWorkouts));
+      }
+      const workout = state.workouts[selectedWorkoutDay] || defaultWorkouts[selectedWorkoutDay];
       const listContainer = document.getElementById('workout-exercise-list');
       const nameLbl = document.getElementById('workout-name-lbl');
       const countBadge = document.getElementById('workout-count-badge');
       const progressFill = document.getElementById('workout-progress');
       
-      nameLbl.textContent = workout.title;
-      countBadge.textContent = workout.list.length > 0 ? `${workout.list.length} Exercises` : "Rest Day";
+      // Update Header split name and week
+      const weekNumEl = document.getElementById('workout-week-num');
+      const planNameEl = document.getElementById('workout-plan-name');
+      if (weekNumEl) weekNumEl.textContent = `Week ${state.currentWorkoutWeek}`;
+      if (planNameEl) planNameEl.textContent = state.workouts.plan_name || "Custom AI Plan";
       
-      if (workout.list.length === 0) {
+      // Update short labels on weekday selector day pills
+      const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+      dayKeys.forEach(day => {
+        const el = document.getElementById(`day-lbl-${day}`);
+        if (el && state.workouts && state.workouts[day]) {
+          const w = state.workouts[day];
+          if (w.rest) {
+            el.textContent = "Rest";
+          } else {
+            const title = w.title || "Workout";
+            el.textContent = title.split('—')[0].split('(')[0].trim().substring(0, 9);
+          }
+        }
+      });
+      
+      nameLbl.textContent = workout.title;
+      countBadge.textContent = (workout.list && workout.list.length > 0) ? `${workout.list.length} Exercises` : "Rest Day";
+      
+      if (!workout.list || workout.list.length === 0) {
         listContainer.innerHTML = `
           <div style="text-align:center; padding:32px 16px; color:var(--color-text-secondary); font-size:13px;">
             <i class="ti ti-coffee" style="font-size:32px; color:var(--color-danger); display:block; margin-bottom:8px;"></i>
@@ -2988,7 +3132,6 @@
       const sleep = parseFloat(state.userProfile.sleepHrs) || 7.5;
       const hrv = parseInt(state.userProfile.hrv) || 65;
       const rhr = parseInt(state.userProfile.rhr) || 59;
-      // Readiness logic: Sleep score (0-100) + HRV score (0-100) + RHR score (0-100)
       const sleepScore = Math.min(100, (sleep / 8) * 100);
       const hrvScore = Math.min(100, (hrv / 70) * 100);
       const rhrScore = Math.min(100, (60 / rhr) * 100);
@@ -3083,6 +3226,7 @@
                 <span style="font-size:11px; color:var(--color-text-muted);">${setsCompleted} / ${ex.sets} sets</span>
               </div>
             </div>
+            ${ex.cues ? `<p style="font-size:10px; color:var(--color-text-secondary); margin-bottom:8px; font-style:italic; line-height:1.2;">Cues: ${ex.cues}</p>` : ''}
             ${setHtml}
           </div>
         `;
@@ -3398,7 +3542,13 @@
 
     function saveSettings() {
       const p = state.userProfile;
-      p.geminiApiKey = document.getElementById('settings-api-key').value.trim();
+      
+      // Store old workout preferences to check for changes
+      const oldEquipment = p.equipment;
+      const oldExperience = p.experience;
+      const oldSplit = p.splitPreference;
+      const oldInjuries = p.injuries;
+
       p.weight = parseFloat(document.getElementById('settings-weight').value) || 56.0;
       p.height = parseFloat(document.getElementById('settings-height').value) || 170;
       p.age = parseInt(document.getElementById('settings-age').value) || 24;
@@ -3406,6 +3556,19 @@
       p.activityLevel = document.getElementById('settings-activity').value;
       p.goal = document.getElementById('settings-goal').value;
       p.dietPreference = document.getElementById('settings-diet').value;
+      
+      // AI workout options
+      p.equipment = document.getElementById('settings-equipment').value;
+      p.experience = document.getElementById('settings-experience').value;
+      p.splitPreference = document.getElementById('settings-split-pref').value;
+      p.injuries = document.getElementById('settings-injuries').value.trim();
+      
+      const preferencesChanged = (
+        oldEquipment !== p.equipment ||
+        oldExperience !== p.experience ||
+        oldSplit !== p.splitPreference ||
+        oldInjuries !== p.injuries
+      );
       
       // Female options
       p.cycleSyncing = document.getElementById('settings-cycle-sync').checked;
@@ -3420,6 +3583,12 @@
       saveState();
       closeSettingsModal();
       showToast("Settings and profile updated!", "success");
+      
+      if (preferencesChanged) {
+        setTimeout(() => {
+          showToast("Workout preferences updated! Click 'AI Generate' in the Workout tab to update your plan.", "info");
+        }, 1000);
+      }
       
       // Re-trigger all calculators
       checkAchievements();
@@ -3733,12 +3902,6 @@
     // --- GEMINI AI SERVICES ---
     // AI Food image scanner trigger
     function triggerFoodCamera() {
-      const key = state.userProfile.geminiApiKey;
-      if (!key) {
-        alert("Please enter a Google Gemini API Key in Settings first.");
-        openSettingsModal();
-        return;
-      }
       document.getElementById('food-camera-input').click();
     }
 
@@ -3758,26 +3921,18 @@
     }
 
     async function scanFoodImageWithGemini(base64Data, mimeType) {
-      const apiKey = state.userProfile.geminiApiKey;
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const url = `/api/scan-food`;
       
-      const prompt = `Identify the food items in this image. They are Indian foods. Estimate the portion size relative to standard Indian serving vessels (e.g., 1 katori dal, 2 rotis, 1 plate poha, etc.). Calculate total calories, protein (g), carbs (g), and fats (g). Note if it is a cooked dish, and apply raw-to-cooked conversion factors internally where appropriate to give accurate macro values. Return JSON ONLY in this exact format: { "food_name": "Dish Name", "portion_est": "Portion Details", "kcal": 450, "protein_g": 15, "carbs_g": 60, "fat_g": 12, "reasoning": "Brief explanation of Tadka/oil/portion size estimation" }. Do not wrap in markdown or output any extra text.`;
-
       try {
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: prompt },
-                  { inlineData: { mimeType: mimeType, data: base64Data } }
-                ]
-              }
-            ]
-          })
+          body: JSON.stringify({ base64Data, mimeType })
         });
+        
+        if (!response.ok) {
+          throw new Error(`Server returned status ${response.status}`);
+        }
         
         const data = await response.json();
         const textResponse = data.candidates[0].content.parts[0].text;
@@ -3796,7 +3951,7 @@
         openFoodResultsModal();
       } catch (err) {
         console.error(err);
-        showToast("Gemini scan failed. Check API key/connection.", "warning");
+        showToast("Gemini scan failed. Please check network/Vercel settings.", "warning");
       }
     }
 
@@ -3919,13 +4074,6 @@
     }
     
     function startVoiceLogging() {
-      const key = state.userProfile.geminiApiKey;
-      if (!key) {
-        alert("Please enter a Google Gemini API Key in Settings first.");
-        openSettingsModal();
-        return;
-      }
-      
       document.getElementById('speech-modal').style.display = 'flex';
       document.getElementById('speech-transcription').value = '';
       
@@ -3965,21 +4113,18 @@
       }
       
       showToast("Parsing voice log with Gemini...", "info");
-      const apiKey = state.userProfile.geminiApiKey;
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const url = `/api/parse-voice`;
       
-      const prompt = `Parse this voice note into a structured JSON array of food items eaten. The voice note is: "${textVal}". Parse all items, estimate portions, and calculate calories, protein, carbs, and fats. Account for typical Indian ingredients (e.g. ghee, oil, spices). Return JSON ONLY in this exact format: [ { "food_name": "Dish Name", "portion_est": "Portion details", "kcal": 250, "protein_g": 8, "carbs_g": 35, "fat_g": 6 } ]. Do not wrap in markdown or output any extra text.`;
-
       try {
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              { parts: [ { text: prompt } ] }
-            ]
-          })
+          body: JSON.stringify({ textVal })
         });
+        
+        if (!response.ok) {
+          throw new Error(`Server returned status ${response.status}`);
+        }
         
         const data = await response.json();
         const textResponse = data.candidates[0].content.parts[0].text;
@@ -4010,7 +4155,7 @@
         checkAchievements();
       } catch (err) {
         console.error(err);
-        showToast("Gemini voice parsing failed. Check API key/transcription.", "warning");
+        showToast("Gemini voice parsing failed. Check network/Vercel settings or transcription.", "warning");
       }
     }
 
@@ -5467,6 +5612,13 @@
 
     // Master render binder
     function renderAll() {
+      // Sunday Weekly Review card display logic
+      const isSunday = new Date().getDay() === 0 || state.forceSundayReview;
+      const sundayCard = document.getElementById('sunday-review-card');
+      if (sundayCard) {
+        sundayCard.style.display = isSunday ? 'block' : 'none';
+      }
+
       renderWorkoutExercises();
       renderMeals();
       renderCustomFoodList();
@@ -5509,6 +5661,160 @@
           readinessSubEl.textContent = "Low Recovery";
         }
       }
+    }
+
+    function getWeeklyDietAverages() {
+      const today = new Date();
+      let todayCal = 0;
+      let todayProt = 0;
+      
+      const todayStr = getTodayString();
+      state.checkedMeals.forEach(mealId => {
+        const m = meals.find(x => x.id === mealId);
+        if (m) {
+          todayCal += m.kcal;
+          todayProt += m.protein;
+        }
+      });
+      
+      state.customMeals.forEach(meal => {
+        if (meal.date === todayStr) {
+          todayCal += (meal.kcal || 0);
+          todayProt += (meal.protein || 0);
+        }
+      });
+      
+      // Calculate a simple average using custom meals history.
+      const dailySums = {};
+      state.customMeals.forEach(meal => {
+        if (meal.date) {
+          const mealDate = new Date(meal.date);
+          const diffTime = Math.abs(today - mealDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays <= 7) {
+            if (!dailySums[meal.date]) dailySums[meal.date] = { kcal: 0, protein: 0 };
+            dailySums[meal.date].kcal += (meal.kcal || 0);
+            dailySums[meal.date].protein += (meal.protein || 0);
+          }
+        }
+      });
+      
+      const loggedDays = Object.keys(dailySums);
+      let avgCalories = todayCal;
+      let avgProtein = todayProt;
+      
+      if (loggedDays.length > 0) {
+        let totalCal = 0;
+        let totalProt = 0;
+        loggedDays.forEach(d => {
+          totalCal += dailySums[d].kcal;
+          totalProt += dailySums[d].protein;
+        });
+        avgCalories = Math.round(totalCal / loggedDays.length);
+        avgProtein = Math.round(totalProt / loggedDays.length);
+      }
+      
+      const targets = getICMRTargets();
+      if (avgCalories === 0) avgCalories = targets.calories;
+      if (avgProtein === 0) avgProtein = targets.protein;
+      
+      return { avgCalories, avgProtein };
+    }
+
+    async function generateAiWorkout(isWeeklyUpdate = false) {
+      const loader = document.getElementById('ai-loading-overlay');
+      const loadTitle = document.getElementById('ai-loading-title');
+      const loadSubtitle = document.getElementById('ai-loading-subtitle');
+      
+      if (loader) {
+        loader.style.display = 'flex';
+      }
+      if (loadTitle) {
+        loadTitle.textContent = isWeeklyUpdate ? "Autoregulating Weekly Split..." : "Generating AI Workout Plan...";
+      }
+      if (loadSubtitle) {
+        loadSubtitle.textContent = isWeeklyUpdate ? "Gemini is analyzing fatigue, soreness, and overload to adapt exercises." : "Gemini is designing a custom science-backed workout plan based on your profile.";
+      }
+      
+      const payload = {
+        userProfile: state.userProfile,
+        weekNumber: state.currentWorkoutWeek || 1
+      };
+      
+      if (isWeeklyUpdate) {
+        const jointSoreness = parseInt(document.getElementById('sunday-joint-pain').value) || 1;
+        const recovery = parseInt(document.getElementById('sunday-recovery-rating').value) || 3;
+        const overloadStatus = document.getElementById('sunday-overload-status').value || 'stayed_same';
+        const completedWorkouts = Object.values(state.workoutSets).filter(Boolean).length;
+        const { avgCalories, avgProtein } = getWeeklyDietAverages();
+        
+        payload.feedback = {
+          jointSoreness,
+          recovery,
+          overloadStatus,
+          completedWorkouts,
+          avgCalories,
+          avgProtein
+        };
+        
+        payload.previousPlan = state.workouts;
+      }
+      
+      try {
+        const response = await fetch('/api/generate-workout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server returned status ${response.status}`);
+        }
+        
+        const newPlan = await response.json();
+        
+        if (newPlan && newPlan.days) {
+          state.workouts = newPlan;
+          state.workoutSets = {}; // clear completed set checks for next week
+          
+          if (isWeeklyUpdate) {
+            state.currentWorkoutWeek = (state.currentWorkoutWeek || 1) + 1;
+            state.gpPoints += 50;
+            state.forceSundayReview = false;
+            showToast("Week completed! +50 GP. Next week's plan generated.", "success");
+          } else {
+            showToast("AI Workout Plan generated successfully!", "success");
+          }
+          
+          saveState();
+          renderAll();
+        } else {
+          throw new Error("Invalid response format from server");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("AI generation failed. Please try again.", "warning");
+      } finally {
+        if (loader) {
+          loader.style.display = 'none';
+        }
+      }
+    }
+
+    function submitSundayReview() {
+      generateAiWorkout(true);
+    }
+
+    function generateNewAiWorkoutPlan() {
+      generateAiWorkout(false);
+    }
+
+    function triggerSundayReviewDemo() {
+      state.forceSundayReview = true;
+      saveState();
+      switchTab('overview');
+      renderAll();
+      showToast("Sunday review forced! Check the top of your overview dashboard.", "info");
     }
 
     // Startup
