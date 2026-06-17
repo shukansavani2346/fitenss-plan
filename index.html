@@ -16,6 +16,10 @@
   <!-- Chart.js (Required for Growth Tracker) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   
+  <!-- MediaPipe Pose for AI Form Correction -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+  
   <style>
     :root {
       /* Palette */
@@ -1029,6 +1033,401 @@
       border-color: var(--color-primary);
       color: var(--color-text-primary);
     }
+
+    /* --- SHUKAN CORE HIGH TECH STYLES --- */
+    /* Modals & Dialogs */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      z-index: 1050;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-content {
+      background: rgba(18, 18, 22, 0.95);
+      border: 1px solid var(--color-card-border-glow);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      animation: modalEnter 250ms var(--ease-drawer) forwards;
+    }
+    @keyframes modalEnter {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 10px;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-size: 20px;
+    }
+    
+    /* Input Fields */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+      transition: border-color 200ms;
+    }
+    .form-input:focus {
+      border-color: var(--color-primary);
+      outline: none;
+    }
+    
+    /* Camera Overlay for Pose Check */
+    .camera-overlay {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 100vh;
+      background: #000;
+      z-index: 2100;
+      display: none;
+      flex-direction: column;
+    }
+    .camera-video-container {
+      flex: 1;
+      position: relative;
+      background: #050505;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .camera-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 2;
+    }
+    .camera-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0; /* Hidden but processing */
+      z-index: 1;
+    }
+    .camera-hud {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .camera-cues {
+      position: absolute;
+      bottom: 110px;
+      left: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--color-warning);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+      color: #ffb700;
+      font-weight: 700;
+      font-size: 16px;
+      display: none;
+      z-index: 10;
+    }
+    .hud-rep-counter {
+      background: rgba(0,0,0,0.6);
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .hud-rep-num {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--color-success);
+    }
+    .camera-controls {
+      background: rgba(10,10,12,0.95);
+      border-top: 1px solid var(--color-card-border);
+      padding: 16px 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+    
+    /* Quick Actions row in Diet */
+    .diet-ai-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    /* Cycle Sync / Autoregulate alerts */
+    .alert-card {
+      background: rgba(157, 80, 255, 0.1);
+      border: 1px solid rgba(157, 80, 255, 0.2);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .alert-card.danger {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    .alert-card.success {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+    .alert-card-icon {
+      font-size: 18px;
+      margin-top: 1px;
+    }
+    .alert-card-content b {
+      color: var(--color-text-primary);
+      display: block;
+      margin-bottom: 2px;
+    }
+    .alert-card-content p {
+      color: var(--color-text-secondary);
+    }
+    
+    /* Score Indicator & Mini Stats */
+    .metric-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .metric-badge.adapted {
+      background: rgba(157, 80, 255, 0.2);
+      color: #b78eff;
+      border: 0.5px solid rgba(157, 80, 255, 0.4);
+    }
+    
+    /* Settings layout cogs */
+    .header-action-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 50%;
+      transition: background 150ms;
+    }
+    .header-action-btn:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    
+    /* Achievements Card style */
+    .achievement-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      margin-bottom: 10px;
+      transition: all 160ms;
+    }
+    .achievement-row.locked {
+      opacity: 0.5;
+    }
+    .achievement-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(46,91,255,0.15);
+      border: 1.5px solid rgba(46,91,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-primary);
+      font-size: 18px;
+    }
+    .achievement-row.unlocked .achievement-icon {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--color-success);
+      color: var(--color-success);
+    }
+    .achievement-info {
+      flex: 1;
+    }
+    .achievement-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+    .achievement-desc {
+      font-size: 11px;
+      color: var(--color-text-secondary);
+      margin-top: 1px;
+    }
+    .achievement-status {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--color-text-muted);
+    }
+    .achievement-row.unlocked .achievement-status {
+      color: var(--color-success);
+    }
+
+    /* Quick status bar on Overview dashboard */
+    .overview-summary-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .summary-card {
+      background: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .summary-card .title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-secondary);
+      font-weight: 600;
+    }
+    .summary-card .val {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-top: 4px;
+    }
+    .summary-card .sub {
+      font-size: 9px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* Leucine / Amino acids indicator UI */
+    .aa-meter-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .aa-metric-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+    .aa-metric-card .title {
+      color: var(--color-text-secondary);
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .aa-metric-card .val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    /* Toast notification */
+    .toast-notif {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(40px);
+      background: rgba(10,10,12,0.95);
+      border: 1.5px solid var(--color-primary);
+      border-radius: var(--radius-md);
+      padding: 12px 20px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: all 300ms var(--ease-out);
+      pointer-events: none;
+    }
+    .toast-notif.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast-notif.success {
+      border-color: var(--color-success);
+    }
+    .toast-notif.warning {
+      border-color: var(--color-warning);
+    }
   </style>
 </head>
 <body>
@@ -1054,7 +1453,8 @@
       <h1><i class="ti ti-flame"></i> SHUKAN CORE</h1>
       <div style="display:flex; align-items:center; gap:8px;">
         <span id="header-weight-lbl" style="font-size:11px; color:var(--color-text-secondary); font-weight:600;">56 kg</span>
-        <div class="profile-badge">SS</div>
+        <button class="header-action-btn active-scale" onclick="openSettingsModal()"><i class="ti ti-settings"></i></button>
+        <div class="profile-badge" onclick="showAchievementsModal()" style="cursor:pointer;">SS</div>
       </div>
     </header>
 
@@ -1062,6 +1462,42 @@
       
       <!-- ==================== OVERVIEW SECTION ==================== -->
       <div id="overview" class="section active">
+
+        <!-- Gamification & Summary Bar -->
+        <div class="overview-summary-bar">
+          <div class="summary-card active-scale" onclick="showAchievementsModal()">
+            <span class="title">GP Balance</span>
+            <div class="val" id="user-gp-pts"><i class="ti ti-trophy"></i> 0</div>
+            <span class="sub">Click to view Badges</span>
+          </div>
+          <div class="summary-card">
+            <span class="title">Streak</span>
+            <div class="val" id="user-streak"><i class="ti ti-bolt"></i> 0 Days</div>
+            <span class="sub">Consistency</span>
+          </div>
+          <div class="summary-card" onclick="openSettingsModal()">
+            <span class="title">Readiness</span>
+            <div class="val" id="user-readiness" style="color:var(--color-success);">85%</div>
+            <span class="sub" id="user-readiness-sub">Excellent</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Cycle Sync Card & Recovery Alerts -->
+        <div id="cycle-sync-alert" class="alert-card" style="display:none;">
+          <div class="alert-card-icon" style="color:#b78eff;"><i class="ti ti-gender-female"></i></div>
+          <div class="alert-card-content">
+            <b id="cycle-alert-title">Cycle Phase Active</b>
+            <p id="cycle-alert-desc">Adapting metrics dynamically...</p>
+          </div>
+        </div>
+
+        <div id="recovery-alert-card" class="alert-card danger" style="display:none;">
+          <div class="alert-card-icon" style="color:var(--color-danger);"><i class="ti ti-alert-triangle"></i></div>
+          <div class="alert-card-content">
+            <b>Low Recovery Autoregulator Active</b>
+            <p>Your readiness is low. Load has been adjusted by -20% and heavy compound exercises have been swapped for machines to prevent injury.</p>
+          </div>
+        </div>
         
         <!-- Live Dashboard Stat Cards (Added for Growth Tracker) -->
         <div class="grid-2" style="margin-bottom: 12px;" id="dashboard-tracker-widgets">
@@ -1277,6 +1713,64 @@
           </div>
         </div>
 
+        <!-- Metabolic Health (CGM Integration) Card -->
+        <div class="card">
+          <div class="card-title">
+            <span>Metabolic Health & CGM <i class="ti ti-activity" style="color:var(--color-secondary);"></i></span>
+            <span class="badge badge-success" id="metabolic-score-badge">Score: --/100</span>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-size:11px; color:var(--color-text-secondary);">Mode: <span id="cgm-mode-lbl" style="font-weight:600; color:var(--color-primary);">Continuous Simulation</span></div>
+            <button class="btn btn-secondary active-scale" style="width:auto; padding:4px 10px; font-size:10px; height:24px;" onclick="toggleCgmMode()">Toggle Mode</button>
+          </div>
+
+          <!-- Glucose stats grid -->
+          <div class="grid-2" style="margin-bottom:12px; gap:8px;">
+            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
+              <span class="label" style="font-size:9px;">Average Glucose</span>
+              <span class="value" id="cgm-avg-val" style="font-size:15px; margin-top:2px;">-- mg/dL</span>
+              <span class="sub" id="cgm-hba1c-sub" style="font-size:9px; margin-top:0;">Est. HbA1c: --%</span>
+            </div>
+            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
+              <span class="label" style="font-size:9px;">Glucose Variability</span>
+              <span class="value" id="cgm-var-val" style="font-size:15px; margin-top:2px;">--%</span>
+              <span class="sub" id="cgm-var-status" style="font-size:9px; margin-top:0; color:var(--color-success);">Optimal (&lt;15%)</span>
+            </div>
+            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
+              <span class="label" style="font-size:9px;">Time In Range (70-110)</span>
+              <span class="value" id="cgm-tir-val" style="font-size:15px; margin-top:2px;">--%</span>
+              <span class="sub" style="font-size:9px; margin-top:0; color:var(--color-success);">Excellent target</span>
+            </div>
+            <div class="stat-widget" style="min-height:55px; padding:6px 10px;">
+              <span class="label" style="font-size:9px;">Latest Reading</span>
+              <span class="value" id="cgm-latest-val" style="font-size:15px; margin-top:2px;">-- mg/dL</span>
+              <span class="sub" id="cgm-latest-time" style="font-size:9px; margin-top:0;">No readings</span>
+            </div>
+          </div>
+
+          <!-- Walk Nudge Alert -->
+          <div id="cgm-spike-nudge" class="alert-card danger" style="display:none; margin-bottom:12px;">
+            <div class="alert-card-icon"><i class="ti ti-walk"></i></div>
+            <div class="alert-card-content" style="flex:1;">
+              <b>Glucose Spike Active!</b>
+              <p style="margin-bottom:6px; color:var(--color-text-secondary);">Your glucose spiked after a high-carb meal. Clear blood sugar naturally using muscle contractions.</p>
+              <button class="btn active-scale" style="height:28px; padding:0 12px; font-size:11px; width:auto;" onclick="simulateWalkToClearSpike()">🏃‍♂️ Log 15-Min Walk (+20 GP)</button>
+            </div>
+          </div>
+
+          <!-- CGM Input Row (Visible only in Manual Mode) -->
+          <div id="cgm-manual-log-row" class="calc-row" style="display:none; margin-bottom:12px;">
+            <input type="number" id="cgm-glucose-val" class="calc-input" placeholder="Glucose (mg/dL)" min="40" max="400">
+            <button class="btn active-scale" style="flex:0.6; padding:0 12px; height:38px;" onclick="logManualGlucose()">Save</button>
+          </div>
+
+          <!-- CGM Chart Canvas -->
+          <div class="canvas-container" style="height:150px; background:rgba(0, 0, 0, 0.2); border-radius:var(--radius-md); padding:10px;">
+            <canvas id="tracker-cgm-chart"></canvas>
+          </div>
+        </div>
+
       </div>
 
       <!-- ==================== WORKOUT SECTION ==================== -->
@@ -1367,14 +1861,43 @@
             <div class="bar-bg"><div id="diet-carbs-bar" class="bar-fill" style="width:0%; background:var(--color-secondary);"></div></div>
           </div>
 
-          <div class="macro-bar">
+          <div class="macro-bar" style="margin-bottom:16px;">
             <div class="macro-info">
               <span class="macro-label">Fats (Goal: 70g)</span>
               <span class="macro-val" id="diet-fats-lbl">0g</span>
             </div>
             <div class="bar-bg"><div id="diet-fats-bar" class="bar-fill" style="width:0%; background:var(--color-warning);"></div></div>
           </div>
+
+          <!-- Amino Acid Panel -->
+          <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px;">
+            <div style="font-size:11px; font-weight:600; color:var(--color-text-secondary); text-transform:uppercase; letter-spacing:0.05em; display:flex; justify-content:space-between; align-items:center;">
+              <span>Amino Acid Completeness (IFCT)</span>
+              <span class="metric-badge adapted" id="cereal-legume-badge">Ratio --:1</span>
+            </div>
+            <div class="aa-meter-container">
+              <div class="aa-metric-card">
+                <div class="title">Leucine (Synthesis threshold 3g)</div>
+                <div class="val" id="aa-leucine-val">--g</div>
+              </div>
+              <div class="aa-metric-card">
+                <div class="title">Lysine (Limiting Grain Amino)</div>
+                <div class="val" id="aa-lysine-val">--g</div>
+              </div>
+            </div>
+            <div id="aa-status-msg" style="font-size:10px; color:var(--color-text-muted); margin-top:8px; line-height:1.3;">
+              Log cereals and legumes together to enable amino acid complementation.
+            </div>
+          </div>
         </div>
+
+        <!-- AI Scan & Voice Log Actions Row -->
+        <div class="diet-ai-row">
+          <button class="btn btn-secondary active-scale" onclick="triggerFoodCamera()"><i class="ti ti-camera"></i> Scan Meal (AI)</button>
+          <button class="btn btn-secondary active-scale" onclick="startVoiceLogging()"><i class="ti ti-microphone"></i> Voice Log</button>
+        </div>
+        <!-- Hidden Inputs for camera -->
+        <input type="file" id="food-camera-input" accept="image/*" style="display:none;" onchange="handleFoodImage(event)">
 
         <!-- Interactive Meals Checklist -->
         <div class="card">
@@ -1382,6 +1905,49 @@
           
           <div id="meals-list">
             <!-- Dynamically populated to hook up macros -->
+          </div>
+        </div>
+
+        <!-- Custom Foods Logger & List -->
+        <div class="card">
+          <div class="card-title">Custom Logged Foods <i class="ti ti-salad"></i></div>
+          
+          <!-- Add Custom Food Form -->
+          <div style="font-size:11px; color:var(--color-text-secondary); margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Log Custom Item (with Raw-to-Cooked Conversion)</div>
+          
+          <div class="calc-row" style="margin-bottom:6px;">
+            <input type="text" id="cust-food-name" class="calc-input" placeholder="Food item (e.g., White Rice)" style="flex:1.5;">
+            <input type="number" id="cust-food-qty" class="calc-input" placeholder="Weight (g)" min="1">
+          </div>
+          
+          <div class="calc-row" style="margin-bottom:8px;">
+            <select id="cust-food-type" class="calc-select" style="flex:1;">
+              <option value="General">Category: General</option>
+              <option value="White Rice">White Rice (Cooked factor: 3.0)</option>
+              <option value="Brown Rice">Brown Rice (Cooked factor: 2.5)</option>
+              <option value="Lentils / Dal">Lentils / Dal (Cooked factor: 2.5)</option>
+              <option value="Chicken Breast">Chicken Breast (Cooked factor: 0.75)</option>
+              <option value="Spinach">Spinach (Cooked factor: 0.3)</option>
+            </select>
+            <select id="cust-food-state" class="calc-select" style="flex:0.6;">
+              <option value="raw">Raw State</option>
+              <option value="cooked">Cooked State</option>
+            </select>
+          </div>
+
+          <div class="calc-row" style="margin-bottom:12px;">
+            <input type="number" id="cust-food-protein" class="calc-input" placeholder="Protein (g)" min="0" step="0.1">
+            <input type="number" id="cust-food-kcal" class="calc-input" placeholder="Calories" min="0">
+            <button class="btn active-scale" style="flex:0.5; padding:0; height:38px;" onclick="addCustomFoodLog()">Log</button>
+          </div>
+
+          <div id="cust-food-cooked-alert" style="display:none; font-size:10px; color:var(--color-warning); margin-bottom:10px; line-height:1.3;">
+            ⚠️ <b>Cooked weight adjusted</b>: Raw equivalence calculated for database tracking.
+          </div>
+
+          <div style="font-size:12px; font-weight:600; color:var(--color-text-secondary); margin-bottom:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">Today's Custom Logs</div>
+          <div id="cust-food-list" style="max-height:150px; overflow-y:auto;">
+            <!-- Dynamically populated (food name | qty | macros | delete btn) -->
           </div>
         </div>
 
@@ -1726,6 +2292,260 @@
     </div>
   </div>
 
+  <!-- ==================== HIGH TECH MODALS & OVERLAYS ==================== -->
+  
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="ti ti-settings" style="color:var(--color-primary);"></i> Settings & User Profile</h3>
+        <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+      </div>
+      
+      <!-- API Key -->
+      <div class="form-group">
+        <label class="form-label">Google Gemini API Key</label>
+        <input type="password" id="settings-api-key" class="form-input" placeholder="AI Studio API Key (for food scanning & voice parsing)">
+        <p style="font-size:10px; color:var(--color-text-muted); margin-top:4px;">Saved locally in your browser storage.</p>
+      </div>
+      
+      <!-- Profile Stats -->
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label class="form-label">Weight (kg)</label>
+          <input type="number" id="settings-weight" class="form-input" step="0.1" min="30" max="200">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Height (cm)</label>
+          <input type="number" id="settings-height" class="form-input" min="100" max="250">
+        </div>
+      </div>
+      
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label class="form-label">Age (years)</label>
+          <input type="number" id="settings-age" class="form-input" min="1" max="120">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Biological Sex</label>
+          <select id="settings-sex" class="form-input" onchange="toggleSettingsFemaleOptions()">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label class="form-label">Activity Level</label>
+          <select id="settings-activity" class="form-input">
+            <option value="sedentary">Sedentary (Office job)</option>
+            <option value="moderate">Moderate (Gym 4-5 days)</option>
+            <option value="heavy">Heavy (Gym 6 days / Active Job)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Goal</label>
+          <select id="settings-goal" class="form-input">
+            <option value="bulk">Bulk (Build Muscle)</option>
+            <option value="cut">Cut (Burn Fat)</option>
+            <option value="maintain">Maintain</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Dietary Preference</label>
+        <select id="settings-diet" class="form-input">
+          <option value="veg">Vegetarian (RDA Target +10% correction)</option>
+          <option value="non-veg">Non-Vegetarian</option>
+        </select>
+      </div>
+
+      <!-- Female Specific Cycle Syncing Options -->
+      <div id="settings-female-options" style="display:none; border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px;">
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+          <input type="checkbox" id="settings-cycle-sync" style="width:18px; height:18px; cursor:pointer;">
+          <label class="form-label" style="margin-bottom:0; cursor:pointer;" for="settings-cycle-sync">Enable Female Cycle Syncing</label>
+        </div>
+        <div class="grid-2" style="margin-bottom: 0;">
+          <div class="form-group">
+            <label class="form-label">Last Period Start Date</label>
+            <input type="date" id="settings-period-start" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cycle Length (days)</label>
+            <input type="number" id="settings-cycle-len" class="form-input" value="28" min="20" max="45">
+          </div>
+        </div>
+      </div>
+
+      <!-- Autoregulation settings (Simulating Wearables) -->
+      <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px; margin-bottom:16px;">
+        <label class="form-label" style="color:var(--color-secondary);">Simulate Wearable recovery metrics</label>
+        <div class="grid-2" style="margin-bottom:0; gap:8px;">
+          <div class="form-group">
+            <label class="form-label" style="font-size:10px;">Sleep Duration (hrs)</label>
+            <input type="number" id="settings-sleep" class="form-input" step="0.5" value="7.5" min="3" max="15">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-size:10px;">HRV (ms)</label>
+            <input type="number" id="settings-hrv" class="form-input" value="65" min="10" max="150">
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup and Restore Data -->
+      <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px; margin-bottom:16px;">
+        <label class="form-label" style="color:var(--color-primary);">Data Sync & Transfer</label>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary active-scale" style="flex:1; height:32px; font-size:11px; padding:0;" onclick="exportStateData()"><i class="ti ti-download"></i> Export JSON</button>
+          <button class="btn btn-secondary active-scale" style="flex:1; height:32px; font-size:11px; padding:0;" onclick="triggerImportFileInput()"><i class="ti ti-upload"></i> Import JSON</button>
+          <input type="file" id="import-file-input" style="display:none;" onchange="importStateData(event)">
+        </div>
+        <p style="font-size:9px; color:var(--color-text-muted); margin-top:4px; text-align:center;">Export data to migrate state across different devices.</p>
+      </div>
+      
+      <button class="btn active-scale" onclick="saveSettings()">Save & Update Profile</button>
+    </div>
+  </div>
+
+  <!-- Achievements / Badges Modal -->
+  <div id="achievements-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="ti ti-award" style="color:var(--color-warning);"></i> Unlocked Badges</h3>
+        <button class="modal-close" onclick="closeAchievementsModal()">&times;</button>
+      </div>
+      
+      <div id="achievements-list">
+        <!-- Dynamically loaded list of badges -->
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Food Scan Results Modal -->
+  <div id="food-results-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="ti ti-camera" style="color:var(--color-success);"></i> AI Scan Results</h3>
+        <button class="modal-close" onclick="closeFoodResultsModal()">&times;</button>
+      </div>
+      
+      <div id="food-results-content">
+        <div class="form-group">
+          <label class="form-label">Identified Dish Name</label>
+          <input type="text" id="ai-food-name" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Portion Size Details</label>
+          <input type="text" id="ai-food-portion" class="form-input" readonly>
+        </div>
+        
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Calories (kcal)</label>
+            <input type="number" id="ai-food-kcal" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Protein (g)</label>
+            <input type="number" id="ai-food-protein" class="form-input">
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Carbs (g)</label>
+            <input type="number" id="ai-food-carbs" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fats (g)</label>
+            <input type="number" id="ai-food-fats" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">AI Estimation Logic</label>
+          <p id="ai-food-reasoning" style="font-size:11px; color:var(--color-text-secondary); line-height:1.4; background:rgba(255,255,255,0.02); padding:10px; border-radius:var(--radius-sm); border:1px solid rgba(255,255,255,0.04);"></p>
+        </div>
+        
+        <button class="btn active-scale" onclick="logAiFood()">Confirm & Log Food</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speech Logging Modal -->
+  <div id="speech-modal" class="modal-overlay">
+    <div class="modal-content" style="text-align:center;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="ti ti-microphone" style="color:var(--color-danger);"></i> Voice Input</h3>
+        <button class="modal-close" onclick="closeSpeechModal()">&times;</button>
+      </div>
+      
+      <div id="speech-mic-visualizer" style="width:80px; height:80px; border-radius:50%; background:rgba(239, 68, 68, 0.1); border:2.5px solid var(--color-danger); display:flex; align-items:center; justify-content:center; margin:20px auto; color:var(--color-danger); font-size:32px;">
+        <i class="ti ti-microphone" id="speech-mic-icon"></i>
+      </div>
+
+      <div class="form-group" style="text-align:left; margin-bottom:12px;">
+        <label class="form-label" style="font-size:11px;">Speech Language</label>
+        <select id="speech-lang-select" class="form-input" style="height:32px; font-size:12px; padding:0 8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);" onchange="updateSpeechLanguage()">
+          <option value="hi-IN" selected>Hinglish / Hindi (hi-IN)</option>
+          <option value="en-IN">English (India) (en-IN)</option>
+          <option value="bn-IN">Bengali (bn-IN)</option>
+          <option value="ta-IN">Tamil (ta-IN)</option>
+          <option value="te-IN">Telugu (te-IN)</option>
+        </select>
+      </div>
+      
+      <p id="speech-status-lbl" style="font-size:12px; font-weight:600; margin-bottom:10px; color:var(--color-text-primary);">Listening... Speak now</p>
+      
+      <textarea id="speech-transcription" class="form-input" style="height:80px; font-size:12px; margin-bottom:16px; resize:none;" placeholder="Or type what you ate (e.g., Aaj lunch me 2 roti paneer bhurji aur 1 glass milk liya)"></textarea>
+      
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary active-scale" style="flex:1;" onclick="toggleSpeechListening()" id="speech-listen-btn">Pause Mic</button>
+        <button class="btn active-scale" style="flex:1.2;" onclick="parseVoiceLogsWithAi()">Parse with Gemini</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification element -->
+  <div id="app-toast" class="toast-notif">
+    <i id="app-toast-icon" class="ti ti-circle-check"></i>
+    <span id="app-toast-msg">Habit Completed!</span>
+  </div>
+
+  <!-- ==================== MEDIA PIPE REALTIME CAMERA FORM CHECK OVERLAY ==================== -->
+  <div id="camera-overlay" class="camera-overlay">
+    
+    <div class="camera-video-container">
+      <video id="pose-video" class="camera-video" playsinline muted autoplay></video>
+      <canvas id="pose-canvas" class="camera-canvas"></canvas>
+      
+      <!-- HUD Overlays -->
+      <div class="camera-hud">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; width:100%;">
+          <div class="hud-rep-counter">
+            <span class="label" style="font-size:10px; color:var(--color-text-secondary); text-transform:uppercase; font-weight:600;">Reps</span>
+            <span class="hud-rep-num" id="pose-rep-count">0</span>
+          </div>
+          <div style="text-align:right; background:rgba(0,0,0,0.6); padding:6px 12px; border-radius:var(--radius-md); border:1px solid rgba(255,255,255,0.1);">
+            <div id="pose-exercise-name" style="font-size:13px; font-weight:700; color:#fff;">Squats Form Check</div>
+            <div id="pose-form-score" style="font-size:11px; font-weight:600; color:var(--color-success); margin-top:2px;">Form Score: 100%</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Dynamic Form Warning Cues -->
+      <div id="pose-cue-alert" class="camera-cues"></div>
+    </div>
+    
+    <!-- Camera controls bar -->
+    <div class="camera-controls">
+      <button class="btn btn-secondary active-scale" style="flex:1;" onclick="toggleDemoMode()" id="demo-mode-btn">Demo Mode: Off</button>
+      <button class="btn active-scale" style="flex:1; background:var(--grad-success);" onclick="stopCameraFormCheck()">Stop & Save Log</button>
+    </div>
+  </div>
+
   <!-- State logic & data -->
   <script>
     // Master data
@@ -1912,14 +2732,48 @@
       currentMilestone: 1,
       routines: {}, // { "m1": boolean }
       timelineChecks: {}, // { "tc1": boolean }
-      checkedGroceries: [] // [groceryItemId]
+      checkedGroceries: [], // [groceryItemId]
+      
+      // --- SHUKAN CORE HIGH TECH STATE ADDITIONS ---
+      userProfile: {
+        name: "Shukan",
+        age: 24,
+        height: 170,
+        weight: 56.0,
+        targetWeight: 70.0,
+        sex: "male",
+        activityLevel: "moderate",
+        goal: "bulk",
+        dietPreference: "veg",
+        geminiApiKey: "",
+        cycleSyncing: false,
+        lastPeriodDate: "",
+        cycleLength: 28,
+        sleepHrs: 7.5,
+        hrv: 65,
+        rhr: 59
+      },
+      gpPoints: 0,
+      streak: 0,
+      lastActiveDate: "",
+      unlockedAchievements: [],
+      customMeals: [], // array of { name, kcal, protein, carbs, fat, date }
+      glucoseReadings: [], // array of { time, value }
+      cgmMode: 'simulator',
+      liftPRs: {
+        'Bench Press': 50,
+        'Squat': 60,
+        'Deadlift': 80,
+        'OHP': 30
+      }
     };
 
     // Chart registry to avoid canvas conflicts
     const chartRegistry = {
       dashWeight: null,
       trackerWeight: null,
-      trackerLift: null
+      trackerLift: null,
+      trackerCgm: null
     };
 
     let selectedLiftType = 'Bench Press';
@@ -1928,25 +2782,46 @@
     function initAppState() {
       const stored = localStorage.getItem("shukan_fitness_state");
       if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.weightHistory) state.weightHistory = parsed.weightHistory;
-        if (parsed.currentMilestone) state.currentMilestone = parsed.currentMilestone;
-        if (parsed.timelineChecks) state.timelineChecks = parsed.timelineChecks;
-        if (parsed.checkedGroceries) state.checkedGroceries = parsed.checkedGroceries;
-        
-        // Reset daily checks if date changes
-        if (parsed.date === getTodayString()) {
-          state.date = parsed.date;
-          state.workoutSets = parsed.workoutSets || {};
-          state.checkedMeals = parsed.checkedMeals || [];
-          state.waterCount = parsed.waterCount || 0;
-          state.routines = parsed.routines || {};
-        } else {
-          // Keep historical data, reset daily
-          state.date = getTodayString();
-          saveState();
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.weightHistory) state.weightHistory = parsed.weightHistory;
+          if (parsed.currentMilestone) state.currentMilestone = parsed.currentMilestone;
+          if (parsed.timelineChecks) state.timelineChecks = parsed.timelineChecks;
+          if (parsed.checkedGroceries) state.checkedGroceries = parsed.checkedGroceries;
+          
+          // Load new state additions
+          if (parsed.userProfile) state.userProfile = { ...state.userProfile, ...parsed.userProfile };
+          if (parsed.gpPoints !== undefined) state.gpPoints = parsed.gpPoints;
+          if (parsed.streak !== undefined) state.streak = parsed.streak;
+          if (parsed.lastActiveDate !== undefined) state.lastActiveDate = parsed.lastActiveDate;
+          if (parsed.unlockedAchievements) state.unlockedAchievements = parsed.unlockedAchievements;
+          if (parsed.customMeals) state.customMeals = parsed.customMeals;
+          if (parsed.glucoseReadings) state.glucoseReadings = parsed.glucoseReadings;
+          if (parsed.cgmMode) state.cgmMode = parsed.cgmMode;
+          if (parsed.liftPRs) state.liftPRs = { ...state.liftPRs, ...parsed.liftPRs };
+
+          // Reset daily checks if date changes
+          if (parsed.date === getTodayString()) {
+            state.date = parsed.date;
+            state.workoutSets = parsed.workoutSets || {};
+            state.checkedMeals = parsed.checkedMeals || [];
+            state.waterCount = parsed.waterCount || 0;
+            state.routines = parsed.routines || {};
+          } else {
+            // Keep historical data, reset daily
+            state.date = getTodayString();
+            
+            // Auto increment/reset streak
+            checkStreakOnNewDay();
+            saveState();
+          }
+        } catch (e) {
+          console.error("Error loading saved state", e);
         }
       } else {
+        // First time initialization
+        state.lastActiveDate = getTodayString();
+        state.streak = 1;
         saveState();
       }
       
@@ -1957,10 +2832,69 @@
       
       // Default dates
       document.getElementById('tracker-weight-date').value = getTodayString();
+
+      // Populate Settings Input fields
+      populateSettingsInputs();
+      
+      // Calculate daily metrics & triggers
+      updateAchievementsList();
+      checkAchievements();
       
       renderAll();
       renderTrackerAndDashboard();
       renderLiftTracker();
+      
+      // CGM init
+      if (state.cgmMode === 'simulator' && state.glucoseReadings.length === 0) {
+        generateMockGlucoseData();
+      }
+      renderCgmDashboard();
+    }
+
+    function checkStreakOnNewDay() {
+      const todayStr = getTodayString();
+      const lastActive = state.lastActiveDate;
+      if (lastActive) {
+        const today = new Date(todayStr);
+        const last = new Date(lastActive);
+        const diffTime = Math.abs(today - last);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+          // Consecutive day active!
+          state.streak += 1;
+          showToast(`🔥 Streak Extended! ${state.streak} Days active!`, 'success');
+        } else if (diffDays > 1) {
+          // Broke the streak
+          state.streak = 1;
+          showToast(`Streak reset. Let's build it back up!`, 'warning');
+        }
+      } else {
+        state.streak = 1;
+      }
+      state.lastActiveDate = todayStr;
+    }
+
+    function populateSettingsInputs() {
+      const p = state.userProfile;
+      document.getElementById('settings-api-key').value = p.geminiApiKey || '';
+      document.getElementById('settings-weight').value = p.weight;
+      document.getElementById('settings-height').value = p.height;
+      document.getElementById('settings-age').value = p.age;
+      document.getElementById('settings-sex').value = p.sex;
+      document.getElementById('settings-activity').value = p.activityLevel;
+      document.getElementById('settings-goal').value = p.goal;
+      document.getElementById('settings-diet').value = p.dietPreference;
+      
+      // Female options
+      document.getElementById('settings-cycle-sync').checked = p.cycleSyncing;
+      document.getElementById('settings-period-start').value = p.lastPeriodDate || '';
+      document.getElementById('settings-cycle-len').value = p.cycleLength || 28;
+      
+      document.getElementById('settings-sleep').value = p.sleepHrs || 7.5;
+      document.getElementById('settings-hrv').value = p.hrv || 65;
+      
+      toggleSettingsFemaleOptions();
     }
 
     function saveState() {
@@ -2009,10 +2943,22 @@
 
     function toggleSet(day, exerciseIdx, setIdx) {
       const key = `${day}_${exerciseIdx}_${setIdx}`;
-      state.workoutSets[key] = !state.workoutSets[key];
+      const isChecking = !state.workoutSets[key];
+      state.workoutSets[key] = isChecking;
+      
+      if (isChecking) {
+        state.gpPoints += 5;
+        showToast("💪 Set completed! +5 GP", "success");
+      } else {
+        state.gpPoints = Math.max(0, state.gpPoints - 5);
+      }
+      
       saveState();
       renderWorkoutExercises();
       updateIntakeProgress();
+      checkAchievements();
+      
+      document.getElementById('user-gp-pts').innerHTML = `<i class="ti ti-trophy"></i> ${state.gpPoints}`;
     }
 
     function renderWorkoutExercises() {
@@ -2038,11 +2984,71 @@
         return;
       }
       
+      // Compute Recovery Readiness & Autoregulation
+      const sleep = parseFloat(state.userProfile.sleepHrs) || 7.5;
+      const hrv = parseInt(state.userProfile.hrv) || 65;
+      const rhr = parseInt(state.userProfile.rhr) || 59;
+      // Readiness logic: Sleep score (0-100) + HRV score (0-100) + RHR score (0-100)
+      const sleepScore = Math.min(100, (sleep / 8) * 100);
+      const hrvScore = Math.min(100, (hrv / 70) * 100);
+      const rhrScore = Math.min(100, (60 / rhr) * 100);
+      const readiness = Math.round(0.4 * sleepScore + 0.4 * hrvScore + 0.2 * rhrScore);
+      
+      const isRecoveryLow = readiness < 40;
+      
+      // Update Alert card in overview
+      const recAlert = document.getElementById('recovery-alert-card');
+      if (recAlert) recAlert.style.display = isRecoveryLow ? 'flex' : 'none';
+      
+      // Check female cycle phase if enabled
+      let isOvulatory = false;
+      if (state.userProfile.sex === 'female' && state.userProfile.cycleSyncing && state.userProfile.lastPeriodDate) {
+        const cycleDay = getCycleDay();
+        const phase = getCyclePhase(cycleDay);
+        if (phase === 'Ovulatory') isOvulatory = true;
+      }
+
       let html = '';
       let totalSets = 0;
       let completedSets = 0;
       
-      workout.list.forEach((ex, exIdx) => {
+      workout.list.forEach((exOrig, exIdx) => {
+        let ex = { ...exOrig };
+        let nameSuffix = '';
+        let isAdapted = false;
+        
+        // 1. Recovery Autoregulation Adaptation
+        if (isRecoveryLow) {
+          if (ex.name === "Flat Barbell Bench Press") { ex.name = "Chest Press (Machine)"; isAdapted = true; }
+          else if (ex.name === "Barbell Squat") { ex.name = "Leg Press (Machine)"; isAdapted = true; }
+          else if (ex.name === "Deadlift") { ex.name = "Seated Cable Row"; isAdapted = true; }
+          else if (ex.name === "Overhead Press (barbell or DB)") { ex.name = "Shoulder Press (Machine)"; isAdapted = true; }
+          
+          if (isAdapted) {
+            ex.sets = Math.max(1, ex.sets - 1); // Reduce volume by 1 set
+          }
+        }
+        
+        // Form badges
+        let badgesHtml = '';
+        if (isAdapted) {
+          badgesHtml += `<span class="metric-badge adapted" style="margin-left:6px; font-size:8px;">Autoregulated</span>`;
+        }
+        if (isOvulatory && (ex.name.includes("Squat") || ex.name.includes("Bench") || ex.name.includes("Deadlift"))) {
+          badgesHtml += `<span class="metric-badge adapted" style="background:rgba(239, 68, 68, 0.15); color:var(--color-danger); border-color:rgba(239,68,68,0.3); margin-left:6px; font-size:8px;">Joint Laxity Alert</span>`;
+        }
+
+        // Check if exercise supports BlazePose camera check
+        const formCheckable = ["Flat Barbell Bench Press", "Chest Press (Machine)", "Barbell Squat", "Leg Press (Machine)", "Deadlift", "Seated Cable Row", "Barbell Curl", "Hammer Curl", "Overhead Press (barbell or DB)"].includes(ex.name);
+        let formCheckBtn = '';
+        if (formCheckable) {
+          formCheckBtn = `
+            <button class="btn btn-secondary active-scale" style="width:auto; padding:2px 6px; font-size:9px; height:18px; display:inline-flex; align-items:center; gap:3px; border-radius:4px;" onclick="startCameraFormCheck('${ex.name}')">
+              <i class="ti ti-camera" style="-webkit-text-fill-color: inherit; background:none;"></i> AI Form
+            </button>
+          `;
+        }
+
         let setsCompleted = 0;
         let setHtml = '';
         
@@ -2058,7 +3064,7 @@
           setHtml += `
             <div class="set-row ${isDone ? 'done' : ''} active-scale" onclick="toggleSet('${selectedWorkoutDay}', ${exIdx}, ${i})">
               <span class="set-num">SET ${i}</span>
-              <span class="set-reps">${ex.reps} reps</span>
+              <span class="set-reps">${ex.reps} reps ${isRecoveryLow && isAdapted ? '(-10% load)' : ''}</span>
               <div class="set-check"><i class="ti ti-check"></i></div>
             </div>
           `;
@@ -2068,9 +3074,14 @@
         
         html += `
           <div style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-size:13px; font-weight:600; color:${isExCompleted ? 'var(--color-success)' : 'var(--color-text-primary)'}">${ex.name}</span>
-              <span style="font-size:11px; color:var(--color-text-muted);">${setsCompleted} / ${ex.sets} sets</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; gap:8px;">
+              <span style="font-size:13px; font-weight:600; color:${isExCompleted ? 'var(--color-success)' : 'var(--color-text-primary)'}; flex:1; display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
+                ${ex.name} ${badgesHtml}
+              </span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                ${formCheckBtn}
+                <span style="font-size:11px; color:var(--color-text-muted);">${setsCompleted} / ${ex.sets} sets</span>
+              </div>
             </div>
             ${setHtml}
           </div>
@@ -2088,14 +3099,23 @@
     // Diet macro tracker
     function toggleMeal(mealId) {
       const idx = state.checkedMeals.indexOf(mealId);
-      if (idx === -1) {
+      const isChecking = (idx === -1);
+      
+      if (isChecking) {
         state.checkedMeals.push(mealId);
+        state.gpPoints += 10;
+        showToast("🥗 Meal Logged! +10 GP", "success");
       } else {
         state.checkedMeals.splice(idx, 1);
+        state.gpPoints = Math.max(0, state.gpPoints - 10);
       }
+      
       saveState();
       renderMeals();
       updateIntakeProgress();
+      checkAchievements();
+      
+      document.getElementById('user-gp-pts').innerHTML = `<i class="ti ti-trophy"></i> ${state.gpPoints}`;
     }
 
     function renderMeals() {
@@ -2124,8 +3144,72 @@
       mealsContainer.innerHTML = html;
     }
 
+    function getICMRTargets() {
+      const p = state.userProfile || {
+        weight: 56, height: 170, age: 24, sex: 'male', activityLevel: 'moderate', goal: 'bulk', dietPreference: 'veg'
+      };
+      
+      // BMR Calculations
+      let bmr = 0;
+      if (p.sex === 'male') {
+        bmr = 10 * p.weight + 6.25 * p.height - 5 * p.age + 5;
+      } else {
+        bmr = 10 * p.weight + 6.25 * p.height - 5 * p.age - 161;
+      }
+      
+      // Activity Level PAL Multipliers (ICMR-NIN 2020)
+      let pal = 1.53; // sedentary
+      if (p.activityLevel === 'moderate') pal = 1.76;
+      else if (p.activityLevel === 'heavy') pal = 2.25;
+      
+      let tdee = bmr * pal;
+      
+      // Goal adjustment
+      let targetCalories = Math.round(tdee);
+      if (p.goal === 'bulk') targetCalories += 400;
+      else if (p.goal === 'cut') targetCalories -= 400;
+      
+      // Cycle Syncing Luteal Adjustment
+      if (p.sex === 'female' && p.cycleSyncing && p.lastPeriodDate) {
+        const cycleDay = getCycleDay();
+        const phase = getCyclePhase(cycleDay);
+        if (phase === 'Luteal') {
+          targetCalories += 150; // Metabolic rate increases by ~150-200 cal
+        }
+      }
+      
+      // Active protein target based on goal (1.8g/kg bulk, 2.0g/kg cut, 1.6g/kg maintain)
+      let proteinFactor = 1.8;
+      if (p.goal === 'cut') proteinFactor = 2.0;
+      else if (p.goal === 'maintain') proteinFactor = 1.6;
+      
+      let targetProtein = p.weight * proteinFactor;
+      
+      // Vegetarian correction (+10% for lower digestibility)
+      if (p.dietPreference === 'veg') {
+        targetProtein = targetProtein * 1.1;
+      }
+      targetProtein = Math.round(targetProtein);
+      
+      // Fats (25% of energy)
+      let targetFats = Math.round((targetCalories * 0.25) / 9);
+      
+      // Carbs (remaining energy)
+      let targetCarbs = Math.round((targetCalories - (targetProtein * 4) - (targetFats * 9)) / 4);
+      
+      return {
+        calories: targetCalories,
+        protein: targetProtein,
+        carbs: targetCarbs,
+        fats: targetFats
+      };
+    }
+
     function updateIntakeProgress() {
-      // Calculate macros checked off
+      // Get dynamic targets
+      const targets = getICMRTargets();
+      
+      // Sum standard checked meals
       let protein = 0;
       let kcal = 0;
       let carbs = 0;
@@ -2141,28 +3225,113 @@
         }
       });
       
+      // Sum custom logged foods for today
+      const todayStr = getTodayString();
+      let cerealsLogged = 0;
+      let legumesLogged = 0;
+      let completeProteinLogged = 0; // whey, paneer, milk, curd
+      
+      // Check standard meals for amino acid components
+      state.checkedMeals.forEach(mealId => {
+        const m = meals.find(x => x.id === mealId);
+        if (m) {
+          const titleLower = m.title.toLowerCase();
+          const descLower = m.desc.toLowerCase();
+          if (titleLower.includes("roti") || titleLower.includes("rice") || titleLower.includes("poha") || titleLower.includes("oats") || descLower.includes("roti") || descLower.includes("rice")) {
+            cerealsLogged += m.carbs * 0.1; // proxy weight
+          }
+          if (titleLower.includes("dal") || titleLower.includes("chana") || titleLower.includes("moong") || titleLower.includes("rajma") || titleLower.includes("chole") || descLower.includes("dal") || descLower.includes("chana") || descLower.includes("moong") || descLower.includes("rajma") || descLower.includes("chole")) {
+            legumesLogged += m.protein * 0.5; // proxy weight
+          }
+          if (titleLower.includes("paneer") || titleLower.includes("milk") || titleLower.includes("curd") || titleLower.includes("dahi")) {
+            completeProteinLogged += m.protein;
+          }
+        }
+      });
+      
+      state.customMeals.forEach(item => {
+        if (item.date === todayStr) {
+          protein += item.protein;
+          kcal += item.kcal;
+          carbs += item.carbs;
+          fats += item.fats;
+          
+          const nameLower = item.name.toLowerCase();
+          if (nameLower.includes("rice") || nameLower.includes("roti") || nameLower.includes("wheat") || nameLower.includes("poha") || nameLower.includes("oats") || nameLower.includes("bread")) {
+            cerealsLogged += item.carbs * 0.1;
+          }
+          if (nameLower.includes("dal") || nameLower.includes("lentil") || nameLower.includes("rajma") || nameLower.includes("chole") || nameLower.includes("chana") || nameLower.includes("sprout") || nameLower.includes("beans")) {
+            legumesLogged += item.protein * 0.5;
+          }
+          if (nameLower.includes("paneer") || nameLower.includes("milk") || nameLower.includes("curd") || nameLower.includes("dahi") || nameLower.includes("whey") || nameLower.includes("tofu") || nameLower.includes("soy")) {
+            completeProteinLogged += item.protein;
+          }
+        }
+      });
+      
       // Update values in UI
       document.getElementById('kcal-total-val').textContent = kcal;
       document.getElementById('protein-total-val').textContent = protein + 'g';
       
-      document.getElementById('diet-protein-lbl').textContent = `${protein}g / 150g`;
-      document.getElementById('diet-carbs-lbl').textContent = `${carbs}g / 350g`;
-      document.getElementById('diet-fats-lbl').textContent = `${fats}g / 70g`;
+      // Update targets labels
+      const kcalLbl = document.querySelector('.progress-text .lbl');
+      if (kcalLbl) kcalLbl.textContent = `/${targets.calories} kcal`;
+      const protLbl = document.querySelectorAll('.progress-text .lbl')[1];
+      if (protLbl) protLbl.textContent = `/${targets.protein}g prot`;
       
+      document.getElementById('diet-protein-lbl').textContent = `${protein}g / ${targets.protein}g`;
+      document.getElementById('diet-carbs-lbl').textContent = `${carbs}g / ${targets.carbs}g`;
+      document.getElementById('diet-fats-lbl').textContent = `${fats}g / ${targets.fats}g`;
+      
+      // Update labels in other dashboard widgets
+      const widgetCal = document.querySelectorAll('.stat-widget .value')[2];
+      if (widgetCal) widgetCal.textContent = `${targets.calories} kcal`;
+      const widgetCalSub = document.querySelectorAll('.stat-widget .sub')[2];
+      if (widgetCalSub) widgetCalSub.textContent = `${targets.protein}g protein/day`;
+
       // Update bars
-      document.getElementById('diet-protein-bar').style.width = `${Math.min((protein/150)*100, 100)}%`;
-      document.getElementById('diet-carbs-bar').style.width = `${Math.min((carbs/350)*100, 100)}%`;
-      document.getElementById('diet-fats-bar').style.width = `${Math.min((fats/70)*100, 100)}%`;
+      document.getElementById('diet-protein-bar').style.width = `${Math.min((protein/targets.protein)*100, 100)}%`;
+      document.getElementById('diet-carbs-bar').style.width = `${Math.min((carbs/targets.carbs)*100, 100)}%`;
+      document.getElementById('diet-fats-bar').style.width = `${Math.min((fats/targets.fats)*100, 100)}%`;
       
       // Radial progress ring dashoffset (Circumference = 2 * PI * 38 = 238.76)
       const circ = 238.76;
-      const kcalPercent = Math.min(kcal / 2800, 1);
+      const kcalPercent = Math.min(kcal / targets.calories, 1);
       const kcalOffset = circ - (kcalPercent * circ);
       document.getElementById('kcal-ring').style.strokeDashoffset = kcalOffset;
 
-      const protPercent = Math.min(protein / 150, 1);
+      const protPercent = Math.min(protein / targets.protein, 1);
       const protOffset = circ - (protPercent * circ);
       document.getElementById('protein-ring').style.strokeDashoffset = protOffset;
+      
+      // --- AMINO ACID CALCULATIONS & PIPELINE ---
+      // Leucine: estimate 8% for complete dairy/whey proteins, 5% for plant grains/legumes
+      const leucine = (completeProteinLogged * 0.08) + ((protein - completeProteinLogged) * 0.05);
+      const lysine = (completeProteinLogged * 0.07) + (legumesLogged * 0.06) + (cerealsLogged * 0.02);
+      
+      document.getElementById('aa-leucine-val').textContent = leucine.toFixed(2) + 'g';
+      document.getElementById('aa-lysine-val').textContent = lysine.toFixed(2) + 'g';
+      
+      // Cereal to Legume ratio calculation
+      let ratioText = "--:1";
+      if (legumesLogged > 0) {
+        const ratio = (cerealsLogged / legumesLogged).toFixed(1);
+        ratioText = `${ratio}:1`;
+      } else if (cerealsLogged > 0) {
+        ratioText = "1:0";
+      }
+      
+      const ratioBadge = document.getElementById('cereal-legume-badge');
+      if (ratioBadge) ratioBadge.textContent = `Ratio ${ratioText}`;
+      
+      const aaStatus = document.getElementById('aa-status-msg');
+      if (leucine >= 3.0) {
+        aaStatus.innerHTML = `✅ <b>MPS Threshold Met</b>: You have achieved the 3.0g Leucine threshold to trigger muscle protein synthesis.`;
+        aaStatus.style.color = 'var(--color-success)';
+      } else {
+        aaStatus.innerHTML = `⚠️ <b>Leucine threshold low (${leucine.toFixed(1)}/3.0g)</b>: Add paneer, soya chunks, or whey to trigger optimal muscle protein synthesis.`;
+        aaStatus.style.color = 'var(--color-warning)';
+      }
     }
 
     // Vegetarian protein calculator
@@ -2185,6 +3354,1260 @@
       
       document.getElementById('calc-result-lbl').textContent = `${p.toFixed(1)}g P`;
     }
+
+    // ==================== HIGH TECH CUSTOM SCRIPTS ====================
+    // Toast Feedback
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('app-toast');
+      const icon = document.getElementById('app-toast-icon');
+      const text = document.getElementById('app-toast-msg');
+      
+      toast.className = `toast-notif ${type}`;
+      text.textContent = msg;
+      
+      if (type === 'success') {
+        icon.className = 'ti ti-circle-check';
+        icon.style.color = 'var(--color-success)';
+      } else if (type === 'warning') {
+        icon.className = 'ti ti-alert-triangle';
+        icon.style.color = 'var(--color-warning)';
+      } else {
+        icon.className = 'ti ti-info-circle';
+        icon.style.color = 'var(--color-primary)';
+      }
+      
+      toast.classList.add('active');
+      setTimeout(() => {
+        toast.classList.remove('active');
+      }, 3000);
+    }
+
+    // Modal Handlers
+    function openSettingsModal() {
+      document.getElementById('settings-modal').style.display = 'flex';
+      populateSettingsInputs();
+    }
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').style.display = 'none';
+    }
+    function toggleSettingsFemaleOptions() {
+      const sex = document.getElementById('settings-sex').value;
+      const opts = document.getElementById('settings-female-options');
+      opts.style.display = (sex === 'female') ? 'block' : 'none';
+    }
+
+    function saveSettings() {
+      const p = state.userProfile;
+      p.geminiApiKey = document.getElementById('settings-api-key').value.trim();
+      p.weight = parseFloat(document.getElementById('settings-weight').value) || 56.0;
+      p.height = parseFloat(document.getElementById('settings-height').value) || 170;
+      p.age = parseInt(document.getElementById('settings-age').value) || 24;
+      p.sex = document.getElementById('settings-sex').value;
+      p.activityLevel = document.getElementById('settings-activity').value;
+      p.goal = document.getElementById('settings-goal').value;
+      p.dietPreference = document.getElementById('settings-diet').value;
+      
+      // Female options
+      p.cycleSyncing = document.getElementById('settings-cycle-sync').checked;
+      p.lastPeriodDate = document.getElementById('settings-period-start').value;
+      p.cycleLength = parseInt(document.getElementById('settings-cycle-len').value) || 28;
+      
+      // Recovery options
+      p.sleepHrs = parseFloat(document.getElementById('settings-sleep').value) || 7.5;
+      p.hrv = parseInt(document.getElementById('settings-hrv').value) || 65;
+      p.rhr = 58; // baseline
+      
+      saveState();
+      closeSettingsModal();
+      showToast("Settings and profile updated!", "success");
+      
+      // Re-trigger all calculators
+      checkAchievements();
+      renderAll();
+      renderTrackerAndDashboard();
+      
+      // Dynamic cycle sync render
+      renderCycleSyncDisplay();
+    }
+
+    function exportStateData() {
+      const data = {
+        shukan_fitness_state: localStorage.getItem("shukan_fitness_state"),
+        shukan_lifts: localStorage.getItem("shukan_lifts"),
+        shukan_weights: localStorage.getItem("shukan_weights")
+      };
+      
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `shukan_fitness_backup_${getTodayString()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("Data exported successfully!", "success");
+    }
+
+    function triggerImportFileInput() {
+      document.getElementById('import-file-input').click();
+    }
+
+    function importStateData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.shukan_fitness_state) {
+            localStorage.setItem("shukan_fitness_state", data.shukan_fitness_state);
+          }
+          if (data.shukan_lifts) {
+            localStorage.setItem("shukan_lifts", data.shukan_lifts);
+          }
+          if (data.shukan_weights) {
+            localStorage.setItem("shukan_weights", data.shukan_weights);
+          }
+          
+          showToast("Data imported successfully! Reloading...", "success");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } catch (err) {
+          console.error(err);
+          alert("Invalid backup file format. Please upload a valid JSON backup.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Female Cycle Syncing calculations
+    function getCycleDay() {
+      const p = state.userProfile;
+      if (!p.lastPeriodDate) return 1;
+      
+      const lastPeriod = new Date(p.lastPeriodDate);
+      const today = new Date();
+      const diffTime = Math.abs(today - lastPeriod);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      return (diffDays % p.cycleLength) + 1;
+    }
+
+    function getCyclePhase(day) {
+      if (day <= 5) return 'Menstrual';
+      if (day <= 12) return 'Follicular';
+      if (day <= 15) return 'Ovulatory';
+      return 'Luteal';
+    }
+
+    function renderCycleSyncDisplay() {
+      const p = state.userProfile;
+      const card = document.getElementById('cycle-sync-alert');
+      
+      if (p.sex === 'female' && p.cycleSyncing && p.lastPeriodDate) {
+        const cycleDay = getCycleDay();
+        const phase = getCyclePhase(cycleDay);
+        
+        card.style.display = 'flex';
+        
+        const titleEl = document.getElementById('cycle-alert-title');
+        const descEl = document.getElementById('cycle-alert-desc');
+        
+        titleEl.textContent = `♀ Cycle Sync Active: ${phase} Phase (Day ${cycleDay})`;
+        
+        if (phase === 'Menstrual') {
+          descEl.textContent = "Low energy, high inflammation. Machine exercises and lighter volume recommended. Caloric targets adjusted (+100 kcal).";
+        } else if (phase === 'Follicular') {
+          descEl.textContent = "Estrogen is rising. Strength and recovery are peak! Great phase to push for PRs and high volume.";
+        } else if (phase === 'Ovulatory') {
+          descEl.textContent = "⚠️ Peak estrogen, joint laxity is elevated (Relaxin active). Avoid testing 1RM squats/deadlifts to protect ligaments.";
+        } else {
+          descEl.textContent = "Rising progesterone. High training fatigue. Standard caloric surplus adjusted (+150 kcal) to match metabolic rise.";
+        }
+      } else {
+        card.style.display = 'none';
+      }
+    }
+
+    // Achievements & Badges Modal
+    const achievementsList = [
+      { id: "a_streak", title: "Consistency Pro", desc: "Unlock a 3-Day active streak counter.", icon: "ti-bolt", condition: () => state.streak >= 3 },
+      { id: "a_pr", title: "Overload Master", desc: "Log a lift entry exceeding base targets.", icon: "ti-barbell", condition: () => Object.values(state.liftPRs).some(x => x > 50) },
+      { id: "a_pose", title: "Form Master", desc: "Complete an AI Pose Form check with score >85.", icon: "ti-camera", condition: () => state.unlockedAchievements.includes("a_pose_done") },
+      { id: "a_diet", title: "IFCT Alchemist", desc: "Achieve dynamic protein targets with leucine >3g.", icon: "ti-salad", condition: () => {
+        const targets = getICMRTargets();
+        let p = 0;
+        state.checkedMeals.forEach(id => {
+          const m = meals.find(x => x.id === id);
+          if (m) p += m.protein;
+        });
+        const todayStr = getTodayString();
+        state.customMeals.forEach(item => {
+          if (item.date === todayStr) p += item.protein;
+        });
+        const completeP = p * 0.07; // proxy
+        return p >= targets.protein && completeP >= 3.0;
+      }},
+      { id: "a_cgm", title: "Metabolic Sage", desc: "Maintain a Metabolic Health Score above 85.", icon: "ti-activity", condition: () => {
+        const score = parseFloat(document.getElementById('metabolic-score-badge').textContent.match(/\d+/));
+        return score >= 85;
+      }}
+    ];
+
+    function showAchievementsModal() {
+      document.getElementById('achievements-modal').style.display = 'flex';
+      updateAchievementsList();
+    }
+    function closeAchievementsModal() {
+      document.getElementById('achievements-modal').style.display = 'none';
+    }
+
+    function updateAchievementsList() {
+      const list = document.getElementById('achievements-list');
+      if (!list) return;
+      
+      let html = '';
+      achievementsList.forEach(ach => {
+        const unlocked = state.unlockedAchievements.includes(ach.id) || ach.condition();
+        
+        // Auto unlock
+        if (unlocked && !state.unlockedAchievements.includes(ach.id)) {
+          state.unlockedAchievements.push(ach.id);
+          saveState();
+        }
+        
+        html += `
+          <div class="achievement-row ${unlocked ? 'unlocked' : 'locked'}">
+            <div class="achievement-icon"><i class="ti ${ach.icon}"></i></div>
+            <div class="achievement-info">
+              <div class="achievement-title">${ach.title}</div>
+              <div class="achievement-desc">${ach.desc}</div>
+            </div>
+            <div class="achievement-status">${unlocked ? "Unlocked" : "Locked"}</div>
+          </div>
+        `;
+      });
+      list.innerHTML = html;
+    }
+
+    function checkAchievements() {
+      achievementsList.forEach(ach => {
+        if (!state.unlockedAchievements.includes(ach.id) && ach.condition()) {
+          state.unlockedAchievements.push(ach.id);
+          saveState();
+          awardGP(100, ach.title);
+        }
+      });
+    }
+
+    function awardGP(points, sourceName) {
+      state.gpPoints += points;
+      saveState();
+      document.getElementById('user-gp-pts').innerHTML = `<i class="ti ti-trophy"></i> ${state.gpPoints}`;
+      showToast(`🏆 +${points} GP: Unlocked "${sourceName}"!`, "success");
+    }
+
+    // Custom Food Logging & Raw-to-Cooked Conversion
+    function addCustomFoodLog() {
+      const name = document.getElementById('cust-food-name').value.trim();
+      const qty = parseFloat(document.getElementById('cust-food-qty').value) || 0;
+      const type = document.getElementById('cust-food-type').value;
+      const foodState = document.getElementById('cust-food-state').value;
+      let protein = parseFloat(document.getElementById('cust-food-protein').value) || 0;
+      let kcal = parseFloat(document.getElementById('cust-food-kcal').value) || 0;
+      
+      if (!name || qty <= 0) {
+        alert("Please enter a valid food name and weight in grams.");
+        return;
+      }
+      
+      let alertDisplay = false;
+      let logQty = qty;
+      
+      // Conversion factors (if logged cooked, convert to raw baseline)
+      if (foodState === 'cooked') {
+        let divisor = 1.0;
+        if (type === 'White Rice') divisor = 3.0;
+        else if (type === 'Brown Rice') divisor = 2.5;
+        else if (type === 'Lentils / Dal') divisor = 2.5;
+        else if (type === 'Chicken Breast') divisor = 0.75;
+        else if (type === 'Spinach') divisor = 0.3;
+        
+        if (divisor !== 1.0) {
+          logQty = qty / divisor;
+          alertDisplay = true;
+          
+          // Re-calculate macros relative to raw weights if not entered manually
+          if (protein === 0 && kcal === 0) {
+            if (type === 'White Rice') { protein = (logQty * 7) / 100; kcal = (logQty * 350) / 100; }
+            else if (type === 'Brown Rice') { protein = (logQty * 8) / 100; kcal = (logQty * 360) / 100; }
+            else if (type === 'Lentils / Dal') { protein = (logQty * 24) / 100; kcal = (logQty * 340) / 100; }
+            else if (type === 'Chicken Breast') { protein = (logQty * 23) / 100; kcal = (logQty * 110) / 100; }
+            else if (type === 'Spinach') { protein = (logQty * 2) / 100; kcal = (logQty * 23) / 100; }
+          }
+        }
+      }
+      
+      // Calculate missing macros for general types if raw is entered
+      if (protein === 0 && kcal === 0) {
+        if (type === 'White Rice') { protein = (qty * 7) / 100; kcal = (qty * 350) / 100; }
+        else if (type === 'Brown Rice') { protein = (qty * 8) / 100; kcal = (qty * 360) / 100; }
+        else if (type === 'Lentils / Dal') { protein = (qty * 24) / 100; kcal = (qty * 340) / 100; }
+        else if (type === 'Chicken Breast') { protein = (qty * 23) / 100; kcal = (qty * 110) / 100; }
+        else if (type === 'Spinach') { protein = (qty * 2) / 100; kcal = (qty * 23) / 100; }
+      }
+      
+      const carbs = Math.round((kcal - (protein * 4)) * 0.7 / 4); // Proxy
+      const fats = Math.round((kcal - (protein * 4) - (carbs * 4)) / 9); // Proxy
+
+      const newMeal = {
+        name: `${name} (${foodState === 'cooked' ? 'Cooked' : 'Raw'})`,
+        qty: Math.round(qty),
+        kcal: Math.round(kcal),
+        protein: Math.round(protein),
+        carbs: Math.max(0, carbs),
+        fats: Math.max(0, fats),
+        date: getTodayString()
+      };
+      
+      state.customMeals.push(newMeal);
+      saveState();
+      
+      // Reset form
+      document.getElementById('cust-food-name').value = '';
+      document.getElementById('cust-food-qty').value = '';
+      document.getElementById('cust-food-protein').value = '';
+      document.getElementById('cust-food-kcal').value = '';
+      document.getElementById('cust-food-cooked-alert').style.display = alertDisplay ? 'block' : 'none';
+      
+      showToast(`Logged custom: ${name}! (+10 GP)`, 'success');
+      state.gpPoints += 10;
+      saveState();
+      
+      renderCustomFoodList();
+      updateIntakeProgress();
+      checkAchievements();
+    }
+
+    function deleteCustomMeal(idx) {
+      state.customMeals.splice(idx, 1);
+      saveState();
+      renderCustomFoodList();
+      updateIntakeProgress();
+    }
+
+    function renderCustomFoodList() {
+      const container = document.getElementById('cust-food-list');
+      const today = getTodayString();
+      const todayMeals = state.customMeals.filter(x => x.date === today);
+      
+      if (todayMeals.length === 0) {
+        container.innerHTML = `<div style="padding:6px 0; color:var(--color-text-muted); font-size:12px;">No custom items logged today.</div>`;
+        return;
+      }
+      
+      let html = '';
+      state.customMeals.forEach((item, idx) => {
+        if (item.date === today) {
+          html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:12px;">
+              <div style="flex:1;">
+                <b style="color:var(--color-text-primary);">${item.name}</b>
+                <p style="font-size:10px; color:var(--color-text-muted);">${item.qty}g — ${item.kcal} cal | ${item.protein}g P | ${item.carbs}g C | ${item.fats}g F</p>
+              </div>
+              <button class="active-scale" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer;" onclick="deleteCustomMeal(${idx})">
+                <i class="ti ti-trash"></i>
+              </button>
+            </div>
+          `;
+        }
+      });
+      container.innerHTML = html;
+    }
+
+    // --- GEMINI AI SERVICES ---
+    // AI Food image scanner trigger
+    function triggerFoodCamera() {
+      const key = state.userProfile.geminiApiKey;
+      if (!key) {
+        alert("Please enter a Google Gemini API Key in Settings first.");
+        openSettingsModal();
+        return;
+      }
+      document.getElementById('food-camera-input').click();
+    }
+
+    function handleFoodImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      showToast("AI Scanning Meal in progress...", "info");
+      
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const base64Data = reader.result.split(',')[1];
+        const mimeType = file.type;
+        await scanFoodImageWithGemini(base64Data, mimeType);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function scanFoodImageWithGemini(base64Data, mimeType) {
+      const apiKey = state.userProfile.geminiApiKey;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      
+      const prompt = `Identify the food items in this image. They are Indian foods. Estimate the portion size relative to standard Indian serving vessels (e.g., 1 katori dal, 2 rotis, 1 plate poha, etc.). Calculate total calories, protein (g), carbs (g), and fats (g). Note if it is a cooked dish, and apply raw-to-cooked conversion factors internally where appropriate to give accurate macro values. Return JSON ONLY in this exact format: { "food_name": "Dish Name", "portion_est": "Portion Details", "kcal": 450, "protein_g": 15, "carbs_g": 60, "fat_g": 12, "reasoning": "Brief explanation of Tadka/oil/portion size estimation" }. Do not wrap in markdown or output any extra text.`;
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  { inlineData: { mimeType: mimeType, data: base64Data } }
+                ]
+              }
+            ]
+          })
+        });
+        
+        const data = await response.json();
+        const textResponse = data.candidates[0].content.parts[0].text;
+        const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+        
+        // Show in modal
+        document.getElementById('ai-food-name').value = parsed.food_name;
+        document.getElementById('ai-food-portion').value = parsed.portion_est;
+        document.getElementById('ai-food-kcal').value = parsed.kcal;
+        document.getElementById('ai-food-protein').value = parsed.protein_g;
+        document.getElementById('ai-food-carbs').value = parsed.carbs_g;
+        document.getElementById('ai-food-fats').value = parsed.fat_g;
+        document.getElementById('ai-food-reasoning').textContent = parsed.reasoning;
+        
+        openFoodResultsModal();
+      } catch (err) {
+        console.error(err);
+        showToast("Gemini scan failed. Check API key/connection.", "warning");
+      }
+    }
+
+    function openFoodResultsModal() {
+      document.getElementById('food-results-modal').style.display = 'flex';
+    }
+    function closeFoodResultsModal() {
+      document.getElementById('food-results-modal').style.display = 'none';
+    }
+
+    function logAiFood() {
+      const name = document.getElementById('ai-food-name').value;
+      const kcal = parseInt(document.getElementById('ai-food-kcal').value) || 0;
+      const protein = parseFloat(document.getElementById('ai-food-protein').value) || 0;
+      const carbs = parseFloat(document.getElementById('ai-food-carbs').value) || 0;
+      const fats = parseFloat(document.getElementById('ai-food-fats').value) || 0;
+      
+      const newMeal = {
+        name: `${name} (AI Scan)`,
+        qty: 100, // default portion weight placeholder
+        kcal: kcal,
+        protein: protein,
+        carbs: carbs,
+        fats: fats,
+        date: getTodayString()
+      };
+      
+      state.customMeals.push(newMeal);
+      saveState();
+      
+      closeFoodResultsModal();
+      showToast("Meal successfully logged with AI! (+30 GP)", "success");
+      
+      // Award GP
+      state.gpPoints += 30;
+      saveState();
+      
+      renderCustomFoodList();
+      updateIntakeProgress();
+      checkAchievements();
+    }
+
+    // Voice Logging Speech API & parsing
+    let speechRecognitionInstance = null;
+    let isListening = false;
+    
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        document.getElementById('speech-status-lbl').textContent = "Web Speech API not supported. Please type your meal:";
+        document.getElementById('speech-listen-btn').style.display = 'none';
+        return;
+      }
+      
+      if (speechRecognitionInstance) {
+        try {
+          speechRecognitionInstance.stop();
+        } catch (e) {}
+      }
+      
+      speechRecognitionInstance = new SpeechRecognition();
+      speechRecognitionInstance.continuous = false;
+      speechRecognitionInstance.interimResults = false;
+      
+      const langSelect = document.getElementById('speech-lang-select');
+      speechRecognitionInstance.lang = langSelect ? langSelect.value : 'hi-IN';
+      
+      speechRecognitionInstance.onstart = () => {
+        isListening = true;
+        const currentLang = speechRecognitionInstance.lang;
+        let langName = 'Hindi/Hinglish';
+        if (currentLang === 'en-IN') langName = 'English (India)';
+        else if (currentLang === 'bn-IN') langName = 'Bengali';
+        else if (currentLang === 'ta-IN') langName = 'Tamil';
+        else if (currentLang === 'te-IN') langName = 'Telugu';
+        
+        document.getElementById('speech-status-lbl').textContent = `Listening (${langName})... Speak now`;
+        document.getElementById('speech-mic-visualizer').style.borderColor = 'var(--color-success)';
+        document.getElementById('speech-mic-icon').style.color = 'var(--color-success)';
+        document.getElementById('speech-listen-btn').textContent = "Stop Mic";
+      };
+      
+      speechRecognitionInstance.onend = () => {
+        isListening = false;
+        document.getElementById('speech-status-lbl').textContent = "Mic Idle. Adjust text or parse:";
+        document.getElementById('speech-mic-visualizer').style.borderColor = 'var(--color-danger)';
+        document.getElementById('speech-mic-icon').style.color = 'var(--color-danger)';
+        document.getElementById('speech-listen-btn').textContent = "Start Mic";
+      };
+      
+      speechRecognitionInstance.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        isListening = false;
+        document.getElementById('speech-mic-visualizer').style.borderColor = 'var(--color-danger)';
+        document.getElementById('speech-mic-icon').style.color = 'var(--color-danger)';
+        document.getElementById('speech-listen-btn').textContent = "Start Mic";
+        
+        if (event.error === 'not-allowed') {
+          document.getElementById('speech-status-lbl').innerHTML = 
+            "<span style='color:var(--color-danger); font-size:11px;'>Mic permission denied/blocked. Note: Chrome blocks mic on file://. Try localhost or type below.</span>";
+        } else if (event.error === 'no-speech') {
+          document.getElementById('speech-status-lbl').textContent = "No speech detected. Try again or type below:";
+        } else {
+          document.getElementById('speech-status-lbl').textContent = `Speech error: ${event.error}. You can type below:`;
+        }
+      };
+      
+      speechRecognitionInstance.onresult = (event) => {
+        if (event.results && event.results.length > 0) {
+          const text = event.results[0][0].transcript;
+          document.getElementById('speech-transcription').value = text;
+        }
+      };
+      
+      try {
+        speechRecognitionInstance.start();
+      } catch (err) {
+        console.error("Failed to start SpeechRecognition:", err);
+      }
+    }
+    
+    function startVoiceLogging() {
+      const key = state.userProfile.geminiApiKey;
+      if (!key) {
+        alert("Please enter a Google Gemini API Key in Settings first.");
+        openSettingsModal();
+        return;
+      }
+      
+      document.getElementById('speech-modal').style.display = 'flex';
+      document.getElementById('speech-transcription').value = '';
+      
+      initSpeechRecognition();
+    }
+
+    function toggleSpeechListening() {
+      if (isListening) {
+        if (speechRecognitionInstance) {
+          speechRecognitionInstance.stop();
+        }
+      } else {
+        initSpeechRecognition();
+      }
+    }
+    
+    function updateSpeechLanguage() {
+      if (isListening) {
+        initSpeechRecognition();
+      }
+    }
+
+    function closeSpeechModal() {
+      if (speechRecognitionInstance) {
+        try {
+          speechRecognitionInstance.stop();
+        } catch (e) {}
+      }
+      document.getElementById('speech-modal').style.display = 'none';
+    }
+
+    async function parseVoiceLogsWithAi() {
+      const textVal = document.getElementById('speech-transcription').value.trim();
+      if (!textVal) {
+        alert("Please speak or type what you ate first.");
+        return;
+      }
+      
+      showToast("Parsing voice log with Gemini...", "info");
+      const apiKey = state.userProfile.geminiApiKey;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      
+      const prompt = `Parse this voice note into a structured JSON array of food items eaten. The voice note is: "${textVal}". Parse all items, estimate portions, and calculate calories, protein, carbs, and fats. Account for typical Indian ingredients (e.g. ghee, oil, spices). Return JSON ONLY in this exact format: [ { "food_name": "Dish Name", "portion_est": "Portion details", "kcal": 250, "protein_g": 8, "carbs_g": 35, "fat_g": 6 } ]. Do not wrap in markdown or output any extra text.`;
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              { parts: [ { text: prompt } ] }
+            ]
+          })
+        });
+        
+        const data = await response.json();
+        const textResponse = data.candidates[0].content.parts[0].text;
+        const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsedArray = JSON.parse(cleanJson);
+        
+        parsedArray.forEach(item => {
+          const newMeal = {
+            name: `${item.food_name} (Voice Log)`,
+            qty: 100,
+            kcal: item.kcal,
+            protein: item.protein_g,
+            carbs: item.carbs_g,
+            fats: item.fat_g,
+            date: getTodayString()
+          };
+          state.customMeals.push(newMeal);
+        });
+        saveState();
+        
+        closeSpeechModal();
+        showToast(`Parsed ${parsedArray.length} items from voice! (+25 GP)`, "success");
+        state.gpPoints += 25;
+        saveState();
+        
+        renderCustomFoodList();
+        updateIntakeProgress();
+        checkAchievements();
+      } catch (err) {
+        console.error(err);
+        showToast("Gemini voice parsing failed. Check API key/transcription.", "warning");
+      }
+    }
+
+    // --- CGM METABOLIC HEALTH DASHBOARD ---
+    function toggleCgmMode() {
+      state.cgmMode = (state.cgmMode === 'simulator') ? 'manual' : 'simulator';
+      saveState();
+      
+      const lbl = document.getElementById('cgm-mode-lbl');
+      const row = document.getElementById('cgm-manual-log-row');
+      
+      lbl.textContent = (state.cgmMode === 'simulator') ? "Continuous Simulation" : "Manual Logs";
+      row.style.display = (state.cgmMode === 'manual') ? "flex" : "none";
+      
+      if (state.cgmMode === 'simulator') {
+        generateMockGlucoseData();
+      } else {
+        state.glucoseReadings = [];
+        saveState();
+      }
+      
+      renderCgmDashboard();
+    }
+
+    function generateMockGlucoseData() {
+      // Create a simulated 24 hour blood sugar curve (normal: 80 - 100)
+      const data = [];
+      const now = new Date();
+      
+      // Determine if a glucose spike should be present (based on meals logged)
+      const targets = getICMRTargets();
+      let hasSpiked = false;
+      const todayStr = getTodayString();
+      let loggedCarbs = 0;
+      
+      state.checkedMeals.forEach(id => {
+        const m = meals.find(x => x.id === id);
+        if (m) loggedCarbs += m.carbs;
+      });
+      state.customMeals.forEach(item => {
+        if (item.date === todayStr) loggedCarbs += item.carbs;
+      });
+
+      for (let i = 24; i > 0; i--) {
+        const date = new Date(now.getTime() - i * 60 * 60 * 1000);
+        const hour = date.getHours();
+        
+        // Base baseline
+        let val = 85 + Math.sin(hour / 3) * 8 + (Math.random() * 4);
+        
+        // Add post-meal spikes (Breakfast: 8am, Lunch: 1:30pm, Dinner: 8pm)
+        if (hour >= 8 && hour <= 10) {
+          val += 25;
+        } else if (hour >= 13 && hour <= 16 && loggedCarbs > 100) {
+          val += 58; // Major spike if carbs are heavy
+          hasSpiked = true;
+        } else if (hour >= 20 && hour <= 22) {
+          val += 35;
+        }
+        
+        data.push({
+          time: `${String(hour).padStart(2,'0')}:00`,
+          value: Math.round(val)
+        });
+      }
+      
+      state.glucoseReadings = data;
+      saveState();
+      
+      // Trigger spike nudge walk reminder
+      const nudge = document.getElementById('cgm-spike-nudge');
+      if (nudge) {
+        nudge.style.display = hasSpiked ? 'flex' : 'none';
+      }
+    }
+
+    function simulateWalkToClearSpike() {
+      showToast("Logging brisk walk... Glut4 receptors activated!", "success");
+      awardGP(20, "15-Min Post-Meal Walk");
+      
+      // Update readings to clear the spike
+      state.glucoseReadings = state.glucoseReadings.map(item => {
+        if (item.value > 130) {
+          return { ...item, value: Math.round(item.value - 40) };
+        }
+        return item;
+      });
+      saveState();
+      
+      // Hide nudge
+      const nudge = document.getElementById('cgm-spike-nudge');
+      if (nudge) nudge.style.display = 'none';
+      
+      renderCgmDashboard();
+    }
+
+    function logManualGlucose() {
+      const input = document.getElementById('cgm-glucose-val');
+      const val = parseInt(input.value) || 0;
+      if (val < 40 || val > 400) {
+        alert("Please enter a valid glucose reading (40-400 mg/dL).");
+        return;
+      }
+      
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      
+      state.glucoseReadings.push({ time: timeStr, value: val });
+      if (state.glucoseReadings.length > 24) state.glucoseReadings.shift(); // keep 24
+      
+      saveState();
+      input.value = '';
+      
+      showToast(`Manual Glucose Logged: ${val} mg/dL! (+10 GP)`, 'success');
+      state.gpPoints += 10;
+      saveState();
+      
+      // Trigger walk nudge if manual spike is recorded
+      const nudge = document.getElementById('cgm-spike-nudge');
+      if (nudge) nudge.style.display = (val >= 140) ? 'flex' : 'none';
+
+      renderCgmDashboard();
+      checkAchievements();
+    }
+
+    function renderCgmDashboard() {
+      const readings = state.glucoseReadings;
+      if (readings.length === 0) return;
+      
+      const values = readings.map(x => x.value);
+      const sum = values.reduce((a, b) => a + b, 0);
+      const avg = Math.round(sum / values.length);
+      
+      // Time in Range (70 - 110)
+      const inRangeCount = values.filter(x => x >= 70 && x <= 110).length;
+      const tir = Math.round((inRangeCount / values.length) * 100);
+      
+      // Standard Deviation / Variability
+      const mean = sum / values.length;
+      const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+      const sd = Math.sqrt(variance);
+      const cv = ((sd / mean) * 100).toFixed(1);
+      
+      // HbA1c estimate
+      const hba1c = ((mean + 46.7) / 28.7).toFixed(1);
+      const latest = readings[readings.length - 1];
+      
+      // Score calculation
+      const metabolicScore = Math.max(10, Math.min(100, Math.round(
+        0.4 * (100 - parseFloat(cv) * 3) + 0.4 * tir + 0.2 * (100 - Math.abs(avg - 90) * 1.5)
+      )));
+      
+      // Update UI text fields
+      document.getElementById('metabolic-score-badge').textContent = `Score: ${metabolicScore}/100`;
+      document.getElementById('cgm-avg-val').textContent = `${avg} mg/dL`;
+      document.getElementById('cgm-hba1c-sub').textContent = `Est. HbA1c: ${hba1c}%`;
+      document.getElementById('cgm-var-val').textContent = `${cv}%`;
+      
+      const varStatus = document.getElementById('cgm-var-status');
+      if (parseFloat(cv) < 15) {
+        varStatus.textContent = "Optimal (<15%)";
+        varStatus.style.color = "var(--color-success)";
+      } else {
+        varStatus.textContent = "Volatile (Risk)";
+        varStatus.style.color = "var(--color-warning)";
+      }
+      
+      document.getElementById('cgm-tir-val').textContent = `${tir}%`;
+      document.getElementById('cgm-latest-val').textContent = `${latest.value} mg/dL`;
+      document.getElementById('cgm-latest-time').textContent = `Logged at ${latest.time}`;
+      
+      // Render graph
+      const chartLabels = readings.map(x => x.time);
+      
+      const lineDataset = {
+        data: values,
+        borderColor: '#9d50ff',
+        backgroundColor: 'rgba(157,80,255,0.05)',
+        borderWidth: 2,
+        tension: 0.3,
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: '#9d50ff',
+        pointRadius: 2,
+        fill: true
+      };
+      
+      const lowerLimitDataset = {
+        data: Array(chartLabels.length).fill(70.0),
+        borderColor: 'rgba(239, 68, 68, 0.3)',
+        borderWidth: 1,
+        borderDash: [3, 3],
+        pointRadius: 0,
+        fill: false
+      };
+      
+      const upperLimitDataset = {
+        data: Array(chartLabels.length).fill(110.0),
+        borderColor: 'rgba(239, 68, 68, 0.3)',
+        borderWidth: 1,
+        borderDash: [3, 3],
+        pointRadius: 0,
+        fill: false
+      };
+      
+      const ctx = document.getElementById('tracker-cgm-chart');
+      if (ctx) {
+        if (chartRegistry.trackerCgm) chartRegistry.trackerCgm.destroy();
+        chartRegistry.trackerCgm = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: chartLabels,
+            datasets: [lineDataset, lowerLimitDataset, upperLimitDataset]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#888', font: { size: 9 } } },
+              y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#888', font: { size: 9 } }, min: 50, max: 200 }
+            }
+          }
+        });
+      }
+    }
+
+    // --- MEDIA PIPE POSE FORM CHECK MECHANICS ---
+    let cameraInstance = null;
+    let poseInstance = null;
+    let poseCheckedRepCount = 0;
+    let poseCheckedFormScore = 100;
+    let currentPoseExercise = '';
+    
+    // Rep state tracking
+    let repDirectionState = 'up'; // 'up' or 'down'
+    let bottomDepthAchieved = false;
+    let formErrorsThisRep = 0;
+    let totalFormErrors = 0;
+    let demoTimer = null;
+    let demoFrameIndex = 0;
+
+    function startCameraFormCheck(exerciseName) {
+      currentPoseExercise = exerciseName;
+      poseCheckedRepCount = 0;
+      poseCheckedFormScore = 100;
+      totalFormErrors = 0;
+      formErrorsThisRep = 0;
+      repDirectionState = 'up';
+      bottomDepthAchieved = false;
+      
+      document.getElementById('pose-exercise-name').textContent = `${exerciseName} Form Check`;
+      document.getElementById('pose-rep-count').textContent = '0';
+      document.getElementById('pose-form-score').textContent = 'Form Score: 100%';
+      document.getElementById('pose-cue-alert').style.display = 'none';
+      
+      document.getElementById('camera-overlay').style.display = 'flex';
+      
+      speakFeedback(`Starting form check for ${exerciseName}. Position your phone 45 degrees in front of you.`);
+      
+      // Check if MediaPipe pose is loaded
+      if (typeof Pose !== 'undefined') {
+        initMediaPipePose();
+      } else {
+        document.getElementById('pose-cue-alert').textContent = "⚠️ MediaPipe loading... toggle Demo Mode to try without camera.";
+        document.getElementById('pose-cue-alert').style.display = 'block';
+      }
+    }
+
+    function initMediaPipePose() {
+      const videoElement = document.getElementById('pose-video');
+      const canvasElement = document.getElementById('pose-canvas');
+      const canvasCtx = canvasElement.getContext('2d');
+      
+      poseInstance = new Pose({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+      });
+      
+      poseInstance.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        enableSegmentation: false,
+        smoothSegmentation: false,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+      });
+      
+      poseInstance.onResults((results) => {
+        if (!results.poseLandmarks) return;
+        
+        // Match canvas dimensions to video
+        canvasElement.width = videoElement.clientWidth;
+        canvasElement.height = videoElement.clientHeight;
+        
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        
+        // Draw mirror frame
+        canvasCtx.save();
+        canvasCtx.scale(-1, 1);
+        canvasCtx.translate(-canvasElement.width, 0);
+        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        canvasCtx.restore();
+        
+        // Draw Skeleton Connections
+        drawLocalSkeleton(canvasCtx, results.poseLandmarks, canvasElement.width, canvasElement.height);
+        
+        // Analyze biomechanics
+        analyzeBiomechanics(results.poseLandmarks);
+      });
+      
+      // Initialize Camera Utility
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        cameraInstance = new Camera(videoElement, {
+          onFrame: async () => {
+            await poseInstance.send({ image: videoElement });
+          },
+          width: 640,
+          height: 480
+        });
+        cameraInstance.start().catch(err => {
+          console.warn("Camera start failed, switching to demo options", err);
+          toggleDemoMode();
+        });
+      } else {
+        toggleDemoMode();
+      }
+    }
+
+    const POSE_CONNECTIONS = [
+      [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
+      [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]
+    ];
+
+    function drawLocalSkeleton(ctx, landmarks, width, height) {
+      ctx.save();
+      // Mirror the draw
+      ctx.translate(width, 0);
+      ctx.scale(-1, 1);
+      
+      POSE_CONNECTIONS.forEach(([i, j]) => {
+        const p1 = landmarks[i];
+        const p2 = landmarks[j];
+        if (p1 && p2 && p1.visibility > 0.5 && p2.visibility > 0.5) {
+          ctx.beginPath();
+          ctx.moveTo(p1.x * width, p1.y * height);
+          ctx.lineTo(p2.x * width, p2.y * height);
+          ctx.strokeStyle = 'rgba(157, 80, 255, 0.8)';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+        }
+      });
+      
+      // Draw joint dots
+      landmarks.forEach((p, idx) => {
+        if (p && p.visibility > 0.5 && (idx >= 11 && idx <= 28)) {
+          ctx.beginPath();
+          ctx.arc(p.x * width, p.y * height, 6, 0, 2 * Math.PI);
+          ctx.fillStyle = '#2e5bff';
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.fill();
+          ctx.stroke();
+        }
+      });
+      ctx.restore();
+    }
+
+    function findAngle(p1, p2, p3) {
+      if (!p1 || !p2 || !p3) return 180;
+      const radians = Math.atan2(p3.y - p2.y, p3.x - p2.x) - Math.atan2(p1.y - p2.y, p1.x - p2.x);
+      let angle = Math.abs(radians * 180.0 / Math.PI);
+      if (angle > 180.0) angle = 360.0 - angle;
+      return angle;
+    }
+
+    function speakFeedback(text) {
+      if ('speechSynthesis' in window) {
+        if (window.lastSpeakTime && Date.now() - window.lastSpeakTime < 3000) return;
+        window.lastSpeakTime = Date.now();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.05;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function analyzeBiomechanics(landmarks) {
+      const cueAlert = document.getElementById('pose-cue-alert');
+      
+      if (currentPoseExercise.includes("Squat")) {
+        const leftKnee = findAngle(landmarks[23], landmarks[25], landmarks[27]);
+        const rightKnee = findAngle(landmarks[24], landmarks[26], landmarks[28]);
+        const avgKnee = (leftKnee + rightKnee) / 2;
+        
+        const hipAngle = findAngle(landmarks[11], landmarks[23], landmarks[25]);
+        
+        // Rep Counter logic
+        if (avgKnee < 110 && repDirectionState === 'up') {
+          repDirectionState = 'down';
+          bottomDepthAchieved = true;
+        }
+        
+        if (avgKnee > 160 && repDirectionState === 'down' && bottomDepthAchieved) {
+          poseCheckedRepCount++;
+          document.getElementById('pose-rep-count').textContent = poseCheckedRepCount;
+          repDirectionState = 'up';
+          bottomDepthAchieved = false;
+          
+          // Compute score
+          if (formErrorsThisRep > 0) {
+            totalFormErrors += formErrorsThisRep;
+            formErrorsThisRep = 0;
+            poseCheckedFormScore = Math.max(50, 100 - (totalFormErrors * 8));
+            document.getElementById('pose-form-score').textContent = `Form Score: ${poseCheckedFormScore}%`;
+          }
+          speakFeedback(`${poseCheckedRepCount} reps completed.`);
+        }
+        
+        // Form checks (Spine alignment: chest up)
+        if (avgKnee < 120 && hipAngle < 105) {
+          cueAlert.textContent = "⚠️ KEEP CHEST UP — DON'T LEAN FORWARD";
+          cueAlert.style.display = 'block';
+          formErrorsThisRep++;
+          speakFeedback("Keep your chest up.");
+        } else {
+          cueAlert.style.display = 'none';
+        }
+      } 
+      else if (currentPoseExercise.includes("Deadlift")) {
+        const spineAngle = findAngle(landmarks[11], landmarks[23], landmarks[25]); // shoulder-hip-knee
+        
+        // Rounded back check
+        if (spineAngle < 145) {
+          cueAlert.textContent = "⚠️ BACK ROUNDED — STRAIGHTEN YOUR SPINE";
+          cueAlert.style.display = 'block';
+          formErrorsThisRep++;
+          speakFeedback("Straighten your back.");
+        } else {
+          cueAlert.style.display = 'none';
+        }
+        
+        // Simple rep counting based on hip angle
+        if (spineAngle < 130 && repDirectionState === 'up') {
+          repDirectionState = 'down';
+          bottomDepthAchieved = true;
+        }
+        if (spineAngle > 165 && repDirectionState === 'down' && bottomDepthAchieved) {
+          poseCheckedRepCount++;
+          document.getElementById('pose-rep-count').textContent = poseCheckedRepCount;
+          repDirectionState = 'up';
+          bottomDepthAchieved = false;
+          
+          if (formErrorsThisRep > 0) {
+            totalFormErrors += formErrorsThisRep;
+            formErrorsThisRep = 0;
+            poseCheckedFormScore = Math.max(50, 100 - (totalFormErrors * 10));
+            document.getElementById('pose-form-score').textContent = `Form Score: ${poseCheckedFormScore}%`;
+          }
+          speakFeedback(`${poseCheckedRepCount} reps.`);
+        }
+      }
+      else if (currentPoseExercise.includes("Curl")) {
+        const elbowAngle = findAngle(landmarks[11], landmarks[13], landmarks[15]);
+        
+        if (elbowAngle < 60 && repDirectionState === 'up') {
+          repDirectionState = 'down';
+          bottomDepthAchieved = true;
+        }
+        if (elbowAngle > 150 && repDirectionState === 'down' && bottomDepthAchieved) {
+          poseCheckedRepCount++;
+          document.getElementById('pose-rep-count').textContent = poseCheckedRepCount;
+          repDirectionState = 'up';
+          bottomDepthAchieved = false;
+          speakFeedback(`${poseCheckedRepCount} reps.`);
+        }
+      }
+    }
+
+    function toggleDemoMode() {
+      const btn = document.getElementById('demo-mode-btn');
+      if (demoTimer) {
+        // Stop demo
+        clearInterval(demoTimer);
+        demoTimer = null;
+        btn.textContent = "Demo Mode: Off";
+        showToast("Demo simulation stopped.", "info");
+      } else {
+        btn.textContent = "Demo Mode: On";
+        showToast("Simulating workout pose check...", "success");
+        runDemoSimulation();
+      }
+    }
+
+    function runDemoSimulation() {
+      const canvasElement = document.getElementById('pose-canvas');
+      const canvasCtx = canvasElement.getContext('2d');
+      
+      // Stop webcam if running
+      if (cameraInstance) {
+        cameraInstance.stop();
+        cameraInstance = null;
+      }
+      
+      demoFrameIndex = 0;
+      demoTimer = setInterval(() => {
+        canvasElement.width = 480;
+        canvasElement.height = 640;
+        canvasCtx.fillStyle = '#0a0a0c';
+        canvasCtx.fillRect(0, 0, 480, 640);
+        
+        // Generate a moving skeleton (Squatting up & down)
+        // Draw ground
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(0, 580);
+        canvasCtx.lineTo(480, 580);
+        canvasCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+        canvasCtx.stroke();
+        
+        // Cycle frame 0 to 40 (0 down, 20 bottom, 40 up)
+        const frame = demoFrameIndex % 40;
+        const scaleDown = frame <= 20 ? (frame / 20) : ((40 - frame) / 20); // 0 to 1
+        
+        const hipY = 320 + (scaleDown * 90);
+        const kneeY = 440 + (scaleDown * 30);
+        const ankleY = 560;
+        
+        const hipX = 240;
+        const kneeX = 200 - (scaleDown * 15);
+        const ankleX = 240;
+        
+        const shoulderY = 180 + (scaleDown * 90);
+        const shoulderX = 245 + (scaleDown * 20); // forward lean
+        
+        const mockLandmarks = Array(33).fill({ x: 0.5, y: 0.5, visibility: 0.8 });
+        
+        // Left joints
+        mockLandmarks[11] = { x: shoulderX / 480, y: shoulderY / 640, visibility: 0.9 };
+        mockLandmarks[23] = { x: hipX / 480, y: hipY / 640, visibility: 0.9 };
+        mockLandmarks[25] = { x: kneeX / 480, y: kneeY / 640, visibility: 0.9 };
+        mockLandmarks[27] = { x: ankleX / 480, y: ankleY / 640, visibility: 0.9 };
+        
+        // Right joints (duplicate for display connection)
+        mockLandmarks[12] = { x: (shoulderX - 10) / 480, y: shoulderY / 640, visibility: 0.9 };
+        mockLandmarks[24] = { x: (hipX - 10) / 480, y: hipY / 640, visibility: 0.9 };
+        mockLandmarks[26] = { x: (kneeX - 10) / 480, y: kneeY / 640, visibility: 0.9 };
+        mockLandmarks[28] = { x: (ankleX - 10) / 480, y: ankleY / 640, visibility: 0.9 };
+        
+        drawLocalSkeleton(canvasCtx, mockLandmarks, 480, 640);
+        
+        // Add fake labels and check reps
+        analyzeBiomechanics(mockLandmarks);
+        
+        demoFrameIndex++;
+      }, 100);
+    }
+
+    function stopCameraFormCheck() {
+      if (cameraInstance) {
+        cameraInstance.stop();
+        cameraInstance = null;
+      }
+      if (poseInstance) {
+        poseInstance.close();
+        poseInstance = null;
+      }
+      if (demoTimer) {
+        clearInterval(demoTimer);
+        demoTimer = null;
+      }
+      
+      document.getElementById('camera-overlay').style.display = 'none';
+      
+      // Award GP and achievements if reps were completed
+      if (poseCheckedRepCount > 0) {
+        showToast(`Pose Checked completed: ${poseCheckedRepCount} reps! Form Score: ${poseCheckedFormScore}%`, 'success');
+        
+        // Save PR / logs
+        let lifts = getLiftLogs();
+        const today = getTodayString();
+        const weightTarget = (state.liftPRs[selectedLiftType] || 50) + 2.5;
+        
+        if (!lifts[selectedLiftType]) lifts[selectedLiftType] = [];
+        lifts[selectedLiftType].push({ d: today, w: weightTarget, r: poseCheckedRepCount });
+        localStorage.setItem("shukan_lifts", JSON.stringify(lifts));
+        
+        // Award GP
+        awardGP(30, `${selectedLiftType} AI Form Check`);
+        
+        // Auto unlock achievement
+        if (poseCheckedFormScore >= 85 && !state.unlockedAchievements.includes("a_pose_done")) {
+          state.unlockedAchievements.push("a_pose_done");
+          saveState();
+        }
+        
+        renderLiftTracker();
+        checkAchievements();
+      }
+    }
+
 
     // Skincare routines
     function toggleRoutine(id) {
@@ -3046,6 +5469,7 @@
     function renderAll() {
       renderWorkoutExercises();
       renderMeals();
+      renderCustomFoodList();
       updateIntakeProgress();
       calculateProtein();
       renderRoutines();
@@ -3055,6 +5479,36 @@
       renderTimelineChecks();
       renderGroceries();
       drawChart();
+      renderCycleSyncDisplay();
+      
+      // Update GP points and streak on dashboard
+      document.getElementById('user-gp-pts').innerHTML = `<i class="ti ti-trophy"></i> ${state.gpPoints}`;
+      document.getElementById('user-streak').innerHTML = `<i class="ti ti-bolt"></i> ${state.streak} Days`;
+      
+      // Update Recovery readiness score on dashboard
+      const sleep = parseFloat(state.userProfile.sleepHrs) || 7.5;
+      const hrv = parseInt(state.userProfile.hrv) || 65;
+      const rhr = parseInt(state.userProfile.rhr) || 59;
+      const sleepScore = Math.min(100, (sleep / 8) * 100);
+      const hrvScore = Math.min(100, (hrv / 70) * 100);
+      const rhrScore = Math.min(100, (60 / rhr) * 100);
+      const readiness = Math.round(0.4 * sleepScore + 0.4 * hrvScore + 0.2 * rhrScore);
+      
+      const readinessEl = document.getElementById('user-readiness');
+      const readinessSubEl = document.getElementById('user-readiness-sub');
+      if (readinessEl && readinessSubEl) {
+        readinessEl.textContent = `${readiness}%`;
+        if (readiness >= 80) {
+          readinessEl.style.color = "var(--color-success)";
+          readinessSubEl.textContent = "Excellent";
+        } else if (readiness >= 50) {
+          readinessEl.style.color = "var(--color-warning)";
+          readinessSubEl.textContent = "Moderate";
+        } else {
+          readinessEl.style.color = "var(--color-danger)";
+          readinessSubEl.textContent = "Low Recovery";
+        }
+      }
     }
 
     // Startup
