@@ -1907,28 +1907,28 @@
           </div>
           <div class="stat-widget">
             <span class="label">Target Weight</span>
-            <span class="value">70 kg</span>
-            <span class="sub">+14 kg lean muscle</span>
+            <span class="value" id="widget-target-weight">70 kg</span>
+            <span class="sub" id="widget-target-diff">+14 kg lean muscle</span>
           </div>
           <div class="stat-widget">
             <span class="label">Daily Target</span>
-            <span class="value">2,800+ kcal</span>
-            <span class="sub">140–160g protein/day</span>
+            <span class="value" id="widget-calories">2,800+ kcal</span>
+            <span class="sub" id="widget-protein">140–160g protein/day</span>
           </div>
           <div class="stat-widget">
-            <span class="label">Gym Frequency</span>
-            <span class="value">5–6 days</span>
-            <span class="sub">PPL × 2 structural split</span>
+            <span class="label">Gym Split</span>
+            <span class="value" id="widget-split">PPL</span>
+            <span class="sub" id="widget-equipment">Full Gym</span>
           </div>
           <div class="stat-widget">
-            <span class="label">Monthly Budget</span>
-            <span class="value">₹500</span>
-            <span class="sub">Whey protein focus</span>
+            <span class="label">Physical Goal</span>
+            <span class="value" id="widget-goal">Bulk</span>
+            <span class="sub" id="widget-experience">Intermediate</span>
           </div>
           <div class="stat-widget">
-            <span class="label">Est. Timeframe</span>
-            <span class="value">12–18 mo</span>
-            <span class="sub">Natural, clean bulk</span>
+            <span class="label">Daily Water</span>
+            <span class="value" id="widget-water">3 Liters</span>
+            <span class="sub">Hydration target</span>
           </div>
         </div>
 
@@ -1940,15 +1940,15 @@
             <div class="row-icon-box"><i class="ti ti-barbell"></i></div>
             <div class="row-details">
               <b>Train Smart & Recover</b>
-              <p>PPL 6 days, progressive overload, sleep 7-8 hrs minimum. Muscle is built during recovery, not in the gym.</p>
+              <p id="pillar-training-desc">PPL 6 days, progressive overload, sleep 7-8 hrs minimum. Muscle is built during recovery, not in the gym.</p>
             </div>
           </div>
           
           <div class="row-item">
             <div class="row-icon-box" style="color:var(--color-secondary);"><i class="ti ti-salad"></i></div>
             <div class="row-details">
-              <b>Vegetarian Surplus</b>
-              <p>At 56 kg you likely eat under 2,200 kcal/day. You need 2,700–3,000 kcal to grow. Pure veg fits this easily with planning.</p>
+              <b>Nutrition Focus</b>
+              <p id="pillar-nutrition-desc">At 56 kg you likely eat under 2,200 kcal/day. You need 2,700–3,000 kcal to grow. Pure veg fits this easily with planning.</p>
             </div>
           </div>
           
@@ -1956,7 +1956,7 @@
             <div class="row-icon-box" style="color:var(--color-success);"><i class="ti ti-sparkles"></i></div>
             <div class="row-details">
               <b>Skin & Hydration</b>
-              <p>80% skin clarity is gut health and hydration. Keep your garlic empty-stomach habit, and add mild sunscreen.</p>
+              <p id="pillar-hydration-desc">80% skin clarity is gut health and hydration. Keep your garlic empty-stomach habit, and add mild sunscreen.</p>
             </div>
           </div>
         </div>
@@ -5601,31 +5601,48 @@
     function renderWeightMilestones() {
       // Synchronized with Tracker data
       const weights = getWeightLogs();
-      const latestWeight = weights.length > 0 ? weights[weights.length - 1].w : 56.0;
+      const latestWeight = weights.length > 0 ? weights[weights.length - 1].w : (parseFloat(state.userProfile.weight) || 56.0);
       
       document.getElementById('header-weight-lbl').textContent = `${latestWeight.toFixed(1)} kg`;
       document.getElementById('current-weight-display').textContent = `${latestWeight.toFixed(1)} kg`;
       document.getElementById('widget-weight').textContent = `${latestWeight.toFixed(1)} kg`;
       
-      // BMI computation
-      const bmi = (latestWeight / (1.7 * 1.7)).toFixed(1);
+      // BMI computation using user height
+      const heightInM = (parseFloat(state.userProfile.height) / 100) || 1.7;
+      const bmi = (latestWeight / (heightInM * heightInM)).toFixed(1);
       let status = 'lean';
       if (bmi >= 25) status = 'overweight';
       else if (bmi >= 18.5) status = 'normal';
       document.getElementById('widget-bmi').textContent = `BMI ${bmi} — ${status}`;
       
-      // Progress from 56 to 70
-      const range = 70.0 - 56.0;
-      const progress = latestWeight - 56.0;
-      let pct = Math.max(0, Math.min(Math.round((progress / range) * 100), 100));
+      // Progress calculations based on starting weight and target weight
+      const startingWeight = weights.length > 0 ? weights[0].w : (parseFloat(state.userProfile.weight) || 56.0);
+      const targetWeight = parseFloat(state.userProfile.targetWeight) || 70.0;
+      
+      let pct = 0;
+      if (targetWeight > startingWeight) {
+        // Bulking
+        const range = targetWeight - startingWeight;
+        const progress = latestWeight - startingWeight;
+        pct = range > 0 ? Math.max(0, Math.min(Math.round((progress / range) * 100), 100)) : 100;
+      } else if (targetWeight < startingWeight) {
+        // Cutting
+        const range = startingWeight - targetWeight;
+        const progress = startingWeight - latestWeight;
+        pct = range > 0 ? Math.max(0, Math.min(Math.round((progress / range) * 100), 100)) : 100;
+      } else {
+        pct = 100;
+      }
       
       document.getElementById('weight-progress-bar').style.width = `${pct}%`;
       document.getElementById('weight-percent-badge').textContent = `${pct}%`;
       
-      const remaining = 70.0 - latestWeight;
+      const remaining = Math.abs(targetWeight - latestWeight);
       if (document.getElementById('weight-remaining-lbl')) {
-        if (remaining > 0) {
-          document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build lean muscle naturally.`;
+        if (latestWeight < targetWeight) {
+          document.getElementById('weight-remaining-lbl').textContent = `Remaining target: +${remaining.toFixed(1)} kg to build.`;
+        } else if (latestWeight > targetWeight) {
+          document.getElementById('weight-remaining-lbl').textContent = `Remaining target: -${remaining.toFixed(1)} kg to lose.`;
         } else {
           document.getElementById('weight-remaining-lbl').textContent = `Goal achieved! High performance maintenance mode active.`;
         }
@@ -6225,6 +6242,68 @@
       }
     }
 
+    function updateDynamicDashboardWidgets() {
+      if (!state.userProfile || !state.isOnboarded) return;
+      
+      const p = state.userProfile;
+      const targets = getICMRTargets();
+      
+      // Update target weight widget
+      const tgtWeightEl = document.getElementById('widget-target-weight');
+      const tgtDiffEl = document.getElementById('widget-target-diff');
+      if (tgtWeightEl) tgtWeightEl.textContent = `${parseFloat(p.targetWeight).toFixed(1)} kg`;
+      if (tgtDiffEl) {
+        const diff = parseFloat(p.targetWeight) - parseFloat(p.weight);
+        if (diff > 0) {
+          tgtDiffEl.textContent = `+${diff.toFixed(1)} kg to build`;
+        } else if (diff < 0) {
+          tgtDiffEl.textContent = `${diff.toFixed(1)} kg to lose`;
+        } else {
+          tgtDiffEl.textContent = `Maintain weight`;
+        }
+      }
+      
+      // Update daily target calories and protein
+      const calEl = document.getElementById('widget-calories');
+      const protEl = document.getElementById('widget-protein');
+      if (calEl) calEl.textContent = `${targets.calories} kcal`;
+      if (protEl) protEl.textContent = `${targets.protein}g protein / day`;
+      
+      // Update split & equipment
+      const splitEl = document.getElementById('widget-split');
+      const equipEl = document.getElementById('widget-equipment');
+      if (splitEl) splitEl.textContent = p.splitPreference;
+      if (equipEl) equipEl.textContent = `Equipment: ${p.equipment}`;
+      
+      // Update goal & experience
+      const goalEl = document.getElementById('widget-goal');
+      const expEl = document.getElementById('widget-experience');
+      if (goalEl) goalEl.textContent = p.goal.toUpperCase();
+      if (expEl) expEl.textContent = `Level: ${p.experience}`;
+      
+      // Update water
+      const waterEl = document.getElementById('widget-water');
+      if (waterEl) waterEl.textContent = `3–4 Liters`;
+      
+      // Update pillars descriptions
+      const pillarTrain = document.getElementById('pillar-training-desc');
+      const pillarNutr = document.getElementById('pillar-nutrition-desc');
+      const pillarHydr = document.getElementById('pillar-hydration-desc');
+      
+      if (pillarTrain) {
+        pillarTrain.textContent = `${p.splitPreference} split using ${p.equipment}, aiming for progressive overload. Ensure you get ${p.sleepHrs} hours of sleep for optimal recovery.`;
+      }
+      if (pillarNutr) {
+        const bmr = p.sex === 'male' ? (10 * p.weight + 6.25 * p.height - 5 * p.age + 5) : (10 * p.weight + 6.25 * p.height - 5 * p.age - 161);
+        const pal = p.activityLevel === 'moderate' ? 1.76 : (p.activityLevel === 'heavy' ? 2.25 : 1.53);
+        const tdee = Math.round(bmr * pal);
+        pillarNutr.textContent = `At ${p.weight} kg, your daily maintenance is ~${tdee} kcal. To ${p.goal === 'bulk' ? 'bulk up' : p.goal === 'cut' ? 'cut fat' : 'maintain'}, aim for ${targets.calories} kcal/day with a ${p.dietType} diet.`;
+      }
+      if (pillarHydr) {
+        pillarHydr.textContent = `Gut health is directly linked to skin clarity. Keep hydrated, follow your ${p.dietType} meal guidelines, and consume clean protein sources.`;
+      }
+    }
+
     // Master render binder
     function renderAll() {
       // Update Welcome greeting & custom target outcome
@@ -6279,6 +6358,7 @@
       renderGroceries();
       drawChart();
       renderCycleSyncDisplay();
+      updateDynamicDashboardWidgets();
       
       // Update GP points and streak on dashboard
       document.getElementById('user-gp-pts').innerHTML = `<i class="ti ti-trophy"></i> ${state.gpPoints}`;
