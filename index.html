@@ -20,6 +20,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
   
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  
   <style>
     :root {
       /* Palette */
@@ -1450,6 +1455,60 @@
 </head>
 <body>
 
+  <!-- Auth Modal Overlay -->
+  <div id="auth-modal" class="modal-overlay" style="display: flex; z-index: 2000; background: rgba(5, 6, 10, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);">
+    <div class="modal-content" style="max-height: 90vh; width: 100%; max-width: 400px; margin: auto;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="font-size: 28px; font-weight: 800; background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; font-family: 'Outfit'; letter-spacing: -0.5px;"><i class="ti ti-flame"></i> FitBharat</h2>
+        <p style="font-size: 13px; color: var(--color-text-secondary);">Your Personalized AI-Powered Fitness Partner</p>
+      </div>
+
+      <!-- Login View -->
+      <div id="auth-login-view">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="auth-login-email" class="form-input" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="auth-login-password" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button id="btn-signin" class="btn active-scale" style="width: 100%; margin-top: 8px;" onclick="handleSignIn()"><i class="ti ti-login"></i> Sign In</button>
+        
+        <div style="text-align: center; margin-top: 20px;">
+          <p style="font-size: 12px; color: var(--color-text-secondary);">
+            New to FitBharat? 
+            <a href="#" onclick="showAuthView('signup')" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Create an Account</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Signup View -->
+      <div id="auth-signup-view" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" id="auth-signup-name" class="form-input" placeholder="Your Name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="auth-signup-email" class="form-input" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password (Min 6 chars)</label>
+          <input type="password" id="auth-signup-password" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button id="btn-signup" class="btn active-scale" style="width: 100%; margin-top: 8px;" onclick="handleSignUp()"><i class="ti ti-user-plus"></i> Create Account</button>
+        
+        <div style="text-align: center; margin-top: 20px;">
+          <p style="font-size: 12px; color: var(--color-text-secondary);">
+            Already have an account? 
+            <a href="#" onclick="showAuthView('login')" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">Sign In</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- SVG Gradient definition for radial progress rings -->
   <svg style="width:0;height:0;position:absolute;" aria-hidden="true">
     <defs>
@@ -2446,16 +2505,15 @@
         </div>
       </div>
 
-      <!-- Backup and Restore Data -->
-      <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px; margin-bottom:16px;">
-        <label class="form-label" style="color:var(--color-primary);">Data Sync & Transfer</label>
-        <div style="display:flex; gap:10px;">
-          <button class="btn btn-secondary active-scale" style="flex:1; height:32px; font-size:11px; padding:0;" onclick="exportStateData()"><i class="ti ti-download"></i> Export JSON</button>
-          <button class="btn btn-secondary active-scale" style="flex:1; height:32px; font-size:11px; padding:0;" onclick="triggerImportFileInput()"><i class="ti ti-upload"></i> Import JSON</button>
-          <input type="file" id="import-file-input" style="display:none;" onchange="importStateData(event)">
+      <!-- Account Info & Sign Out -->
+      <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px; margin-top: 12px; margin-bottom: 16px;">
+        <label class="form-label" style="color: var(--color-primary);">Account Profile</label>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <span id="user-email-display" style="font-size: 11px; color: var(--color-text-secondary); word-break: break-all;">Loading user...</span>
+          <button type="button" class="btn btn-secondary active-scale" style="height: 32px; font-size: 11px; padding: 0 12px; margin-left: auto;" onclick="signOutUser()"><i class="ti ti-logout"></i> Sign Out</button>
         </div>
-        <p style="font-size:9px; color:var(--color-text-muted); margin-top:4px; text-align:center;">Export data to migrate state across different devices.</p>
       </div>
+
       
       <button class="btn active-scale" onclick="saveSettings()">Save & Update Profile</button>
     </div>
@@ -2606,6 +2664,182 @@
 
   <!-- State logic & data -->
   <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAsQXX5RxUqHi-lvElm_YH6ve5VJExqX-A",
+      authDomain: "fitness-plan-f7cb8.firebaseapp.com",
+      projectId: "fitness-plan-f7cb8",
+      storageBucket: "fitness-plan-f7cb8.firebasestorage.app",
+      messagingSenderId: "43806119003",
+      appId: "1:43806119003:web:0196f73395f4da1eab9b7e",
+      measurementId: "G-V7F7HJMQ86"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Debounced Firestore Sync
+    let dbSyncTimeout = null;
+    function triggerDbSync() {
+      const user = auth.currentUser;
+      if (!user) return;
+      
+      if (dbSyncTimeout) clearTimeout(dbSyncTimeout);
+      dbSyncTimeout = setTimeout(() => {
+        db.collection("users").doc(user.uid).set({
+          state: state,
+          weights: getWeightLogs(),
+          lifts: getLiftLogs()
+        }).then(() => {
+          console.log("Firestore synced successfully.");
+        }).catch(err => {
+          console.error("Firestore sync error:", err);
+        });
+      }, 1000);
+    }
+
+    // Load User Data from Firestore
+    async function loadUserData(user) {
+      document.getElementById('user-email-display').textContent = user.email;
+      
+      const docRef = db.collection("users").doc(user.uid);
+      try {
+        const doc = await docRef.get();
+        if (doc.exists) {
+          const data = doc.data();
+          
+          if (data.state) {
+            localStorage.setItem("shukan_fitness_state", JSON.stringify(data.state));
+          }
+          if (data.weights) {
+            localStorage.setItem("shukan_weights", JSON.stringify(data.weights));
+          }
+          if (data.lifts) {
+            localStorage.setItem("shukan_lifts", JSON.stringify(data.lifts));
+          }
+          
+          console.log("Loaded user data from Firestore.");
+        } else {
+          console.log("No remote profile found. Creating new Firestore document...");
+          await docRef.set({
+            state: state,
+            weights: getWeightLogs(),
+            lifts: getLiftLogs()
+          });
+        }
+      } catch (err) {
+        console.error("Error loading user data from Firestore:", err);
+        showToast("Error loading profile from cloud. Using local cache.", "warning");
+      }
+      
+      // Call state initializer and hide auth screen
+      initAppState();
+      document.getElementById('auth-modal').style.display = 'none';
+    }
+
+    // Clear Local Storage Cache on Logout
+    function clearLocalCache() {
+      localStorage.removeItem("shukan_fitness_state");
+      localStorage.removeItem("shukan_weights");
+      localStorage.removeItem("shukan_lifts");
+    }
+
+    // Auth View Switcher
+    function showAuthView(view) {
+      if (view === 'signup') {
+        document.getElementById('auth-login-view').style.display = 'none';
+        document.getElementById('auth-signup-view').style.display = 'block';
+      } else {
+        document.getElementById('auth-login-view').style.display = 'block';
+        document.getElementById('auth-signup-view').style.display = 'none';
+      }
+    }
+
+    // Handle User Sign In
+    function handleSignIn() {
+      const email = document.getElementById('auth-login-email').value.trim();
+      const password = document.getElementById('auth-login-password').value;
+      const btn = document.getElementById('btn-signin');
+
+      if (!email || !password) {
+        showToast("Please enter email and password.", "warning");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="ti ti-loader spin-icon"></i> Signing In...`;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          showToast("Successfully signed in!", "success");
+        })
+        .catch(err => {
+          console.error("Sign in error:", err);
+          showToast(err.message, "danger");
+          btn.disabled = false;
+          btn.innerHTML = `<i class="ti ti-login"></i> Sign In`;
+        });
+    }
+
+    // Handle User Sign Up
+    function handleSignUp() {
+      const name = document.getElementById('auth-signup-name').value.trim();
+      const email = document.getElementById('auth-signup-email').value.trim();
+      const password = document.getElementById('auth-signup-password').value;
+      const btn = document.getElementById('btn-signup');
+
+      if (!name || !email || !password) {
+        showToast("Please fill in all fields.", "warning");
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast("Password must be at least 6 characters.", "warning");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="ti ti-loader spin-icon"></i> Creating...`;
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          const user = userCredential.user;
+          return user.updateProfile({ displayName: name }).then(() => {
+            return db.collection("users").doc(user.uid).set({
+              state: state,
+              weights: getWeightLogs(),
+              lifts: getLiftLogs()
+            });
+          });
+        })
+        .then(() => {
+          showToast("Account created successfully!", "success");
+        })
+        .catch(err => {
+          console.error("Sign up error:", err);
+          showToast(err.message, "danger");
+          btn.disabled = false;
+          btn.innerHTML = `<i class="ti ti-user-plus"></i> Create Account`;
+        });
+    }
+
+    // Handle User Sign Out
+    function signOutUser() {
+      if (confirm("Are you sure you want to sign out?")) {
+        auth.signOut()
+          .then(() => {
+            clearLocalCache();
+            location.reload();
+          })
+          .catch(err => {
+            console.error("Sign out error:", err);
+            showToast("Failed to sign out.", "danger");
+          });
+      }
+    }
+
     // Master data
     const defaultWorkouts = {
       mon: {
@@ -2977,6 +3211,7 @@
 
     function saveState() {
       localStorage.setItem("shukan_fitness_state", JSON.stringify(state));
+      triggerDbSync();
     }
 
     // Tab switcher
@@ -4696,6 +4931,7 @@
         if (!lifts[selectedLiftType]) lifts[selectedLiftType] = [];
         lifts[selectedLiftType].push({ d: today, w: weightTarget, r: poseCheckedRepCount });
         localStorage.setItem("shukan_lifts", JSON.stringify(lifts));
+        triggerDbSync();
         
         // Award GP
         awardGP(30, `${selectedLiftType} AI Form Check`);
@@ -5211,6 +5447,7 @@
       weights.sort((a, b) => new Date(a.d) - new Date(b.d));
       localStorage.setItem("shukan_weights", JSON.stringify(weights));
       renderTrackerAndDashboard();
+      triggerDbSync();
     }
 
     function saveWeightLog() {
@@ -5235,6 +5472,7 @@
         weights = weights.filter(x => x.d !== date);
         localStorage.setItem("shukan_weights", JSON.stringify(weights));
         renderTrackerAndDashboard();
+        triggerDbSync();
       }
     }
 
@@ -5274,6 +5512,7 @@
       repsEl.value = '';
       
       renderLiftTracker();
+      triggerDbSync();
     }
 
     function selectLift(liftName) {
@@ -5775,9 +6014,22 @@
       showToast("Sunday review forced! Check the top of your overview dashboard.", "info");
     }
 
-    // Startup
+    // Startup & Auth Listener
     window.addEventListener('load', () => {
-      initAppState();
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          await loadUserData(user);
+        } else {
+          // Show auth overlay
+          document.getElementById('auth-modal').style.display = 'flex';
+          // Ensure inputs are reset
+          document.getElementById('auth-login-email').value = '';
+          document.getElementById('auth-login-password').value = '';
+          document.getElementById('auth-signup-name').value = '';
+          document.getElementById('auth-signup-email').value = '';
+          document.getElementById('auth-signup-password').value = '';
+        }
+      });
     });
   </script>
 </body>
