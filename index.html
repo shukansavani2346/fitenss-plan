@@ -1509,6 +1509,199 @@
     </div>
   </div>
 
+  <!-- Onboarding Modal -->
+  <div id="onboarding-modal" class="modal-overlay" style="display: none; z-index: 1500; background: rgba(5, 6, 10, 0.97); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); overflow-y: auto; align-items: flex-start; padding-top: 40px; padding-bottom: 40px;">
+    <div class="modal-content" style="max-height: none; width: 100%; max-width: 440px; margin: auto; padding: 24px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h3 style="font-size: 24px; font-weight: 800; background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; font-family: 'Outfit';"><i class="ti ti-user-check"></i> Setup Your Profile</h3>
+        <p style="font-size: 12px; color: var(--color-text-secondary);">FitBharat will customize your training split & meal plan.</p>
+      </div>
+
+      <form id="onboarding-form" onsubmit="handleOnboardingSubmit(event)">
+        <!-- Basic info -->
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="onboard-name" class="form-input" placeholder="e.g. Shukan Savani" required>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 0;">
+          <div class="form-group">
+            <label class="form-label">Age (years)</label>
+            <input type="number" id="onboard-age" class="form-input" min="12" max="100" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Biological Sex</label>
+            <select id="onboard-sex" class="form-input" onchange="toggleOnboardFemaleOptions()" required>
+              <option value="male" selected>Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Physique stats -->
+        <div class="grid-3" style="margin-bottom: 0; gap: 8px;">
+          <div class="form-group">
+            <label class="form-label" style="font-size: 11px;">Weight (kg)</label>
+            <input type="number" id="onboard-weight" class="form-input" step="0.1" min="30" max="250" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-size: 11px;">Height (cm)</label>
+            <input type="number" id="onboard-height" class="form-input" min="100" max="250" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-size: 11px;">Target (kg)</label>
+            <input type="number" id="onboard-target-weight" class="form-input" step="0.1" min="30" max="250" required>
+          </div>
+        </div>
+
+        <!-- Target outcome open-ended question -->
+        <div class="form-group">
+          <label class="form-label">What do you want to achieve?</label>
+          <textarea id="onboard-target-outcome" class="form-input" rows="2" style="height:auto; padding-top:8px;" placeholder="e.g. Build upper body strength, get shredded for summer, increase athletic stamina for sports" required></textarea>
+        </div>
+
+        <!-- Habits & Goals -->
+        <div class="grid-2" style="margin-bottom: 0;">
+          <div class="form-group">
+            <label class="form-label">Fitness Goal</label>
+            <select id="onboard-goal" class="form-input" required>
+              <option value="bulk" selected>Bulk (Build Muscle)</option>
+              <option value="cut">Cut (Burn Fat)</option>
+              <option value="maintain">Maintain</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Activity Level</label>
+            <select id="onboard-activity" class="form-input" required>
+              <option value="sedentary">Sedentary (Office job)</option>
+              <option value="moderate" selected>Moderate (Gym 4-5 days)</option>
+              <option value="heavy">Heavy (Active job / Gym 6 days)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Diet Plan Questions -->
+        <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px; margin-bottom:12px;">
+          <label class="form-label" style="color:var(--color-primary); font-weight:700;">Dietary & Nutrition Preferences</label>
+          
+          <div class="grid-2" style="margin-bottom: 0; gap:8px;">
+            <div class="form-group">
+              <label class="form-label">Diet Type</label>
+              <select id="onboard-diet-type" class="form-input" required>
+                <option value="veg" selected>Vegetarian</option>
+                <option value="non-veg">Non-Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="eggetarian">Eggetarian</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Meals / Day</label>
+              <select id="onboard-meals-count" class="form-input" required>
+                <option value="3">3 Meals</option>
+                <option value="4" selected>4 Meals</option>
+                <option value="5">5 Meals</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Allergies / Exclusions</label>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:6px;">
+              <label style="display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;">
+                <input type="checkbox" id="allergy-lactose" value="lactose" style="width:14px; height:14px;"> Lactose Intolerance
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;">
+                <input type="checkbox" id="allergy-gluten" value="gluten" style="width:14px; height:14px;"> Gluten Sensitive
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer;">
+                <input type="checkbox" id="allergy-nuts" value="nuts" style="width:14px; height:14px;"> Nut Allergy
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Preferred Protein Sources</label>
+            <input type="text" id="onboard-protein-pref" class="form-input" placeholder="e.g. Paneer, Chicken, Whey, Eggs">
+          </div>
+        </div>
+
+        <!-- Workout Split Config -->
+        <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px; margin-bottom:12px;">
+          <label class="form-label" style="color:var(--color-secondary); font-weight:700;">Workout split parameters</label>
+          
+          <div class="grid-2" style="margin-bottom: 0;">
+            <div class="form-group">
+              <label class="form-label">Available Equipment</label>
+              <select id="onboard-equipment" class="form-input" required>
+                <option value="Full Gym" selected>Full Gym</option>
+                <option value="Dumbbells Only">Dumbbells Only</option>
+                <option value="Bodyweight">Bodyweight / Home</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Experience</label>
+              <select id="onboard-experience" class="form-input" required>
+                <option value="Beginner">Beginner (&lt; 1 year)</option>
+                <option value="Intermediate" selected>Intermediate (1-3) </option>
+                <option value="Advanced">Advanced (3+ years)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Workout Split Preference</label>
+            <select id="onboard-split-pref" class="form-input" required>
+              <option value="PPL" selected>Push-Pull-Legs (PPL)</option>
+              <option value="Upper/Lower">Upper/Lower Split</option>
+              <option value="Bro Split">Bro Split (Bodypart Split)</option>
+              <option value="Full Body">Full Body Split</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Injuries / Limitations (Optional)</label>
+            <input type="text" id="onboard-injuries" class="form-input" placeholder="e.g. Knee soreness, none">
+          </div>
+        </div>
+
+        <!-- Female Specific Cycle Syncing Options -->
+        <div id="onboard-female-options" style="display:none; border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px;">
+          <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+            <input type="checkbox" id="onboard-cycle-sync" style="width:18px; height:18px; cursor:pointer;">
+            <label class="form-label" style="margin-bottom:0; cursor:pointer;" for="onboard-cycle-sync">Enable Cycle Syncing</label>
+          </div>
+          <div class="grid-2" style="margin-bottom: 0;">
+            <div class="form-group">
+              <label class="form-label">Last Period Start</label>
+              <input type="date" id="onboard-period-start" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cycle Length (days)</label>
+              <input type="number" id="onboard-cycle-len" class="form-input" value="28" min="20" max="45">
+            </div>
+          </div>
+        </div>
+
+        <!-- Autoregulation recovery metrics -->
+        <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; margin-top:12px; margin-bottom:16px;">
+          <label class="form-label" style="color:var(--color-text-secondary);">Recovery Metrics (Optional)</label>
+          <div class="grid-2" style="margin-bottom:0; gap:8px;">
+            <div class="form-group">
+              <label class="form-label" style="font-size:10px;">Sleep Duration (hrs)</label>
+              <input type="number" id="onboard-sleep" class="form-input" step="0.5" value="7.5" min="3" max="15">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-size:10px;">HRV (ms)</label>
+              <input type="number" id="onboard-hrv" class="form-input" value="65" min="10" max="150">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn active-scale" style="width:100%; background:var(--grad-primary);"><i class="ti ti-sparkles"></i> Save & Generate Plan</button>
+      </form>
+    </div>
+  </div>
+
   <!-- SVG Gradient definition for radial progress rings -->
   <svg style="width:0;height:0;position:absolute;" aria-hidden="true">
     <defs>
@@ -1539,6 +1732,14 @@
       
       <!-- ==================== OVERVIEW SECTION ==================== -->
       <div id="overview" class="section active">
+
+        <!-- User Greeting & Target Outcome display -->
+        <div style="margin-bottom: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--color-card-border); padding: 16px; border-radius: var(--radius-md);">
+          <h2 style="font-size: 20px; font-weight: 800; font-family: 'Outfit'; margin-bottom: 6px;" id="dashboard-welcome">Hello, Athlete!</h2>
+          <p style="font-size: 11px; color: var(--color-text-secondary); line-height: 1.4; display: flex; align-items: center; gap: 6px; font-style: italic;" id="dashboard-outcome">
+            <i class="ti ti-target" style="color:var(--color-primary); font-size: 14px;"></i> Setting up your customized goal...
+          </p>
+        </div>
 
         <!-- Gamification & Summary Bar -->
         <div class="overview-summary-bar">
@@ -2734,9 +2935,24 @@
         showToast("Error loading profile from cloud. Using local cache.", "warning");
       }
       
-      // Call state initializer and hide auth screen
+      // Call state initializer
       initAppState();
+      
+      // Hide auth screen
       document.getElementById('auth-modal').style.display = 'none';
+
+      // Onboarding check
+      if (state.isOnboarded) {
+        document.getElementById('onboarding-modal').style.display = 'none';
+        generateMealsPlan();
+        renderMeals();
+        renderAll();
+      } else {
+        document.getElementById('onboarding-modal').style.display = 'flex';
+        if (user.displayName) {
+          document.getElementById('onboard-name').value = user.displayName;
+        }
+      }
     }
 
     // Clear Local Storage Cache on Logout
@@ -2840,6 +3056,204 @@
       }
     }
 
+    // Toggle cycle syncing options in onboarding
+    function toggleOnboardFemaleOptions() {
+      const sex = document.getElementById('onboard-sex').value;
+      const options = document.getElementById('onboard-female-options');
+      if (options) {
+        options.style.display = (sex === 'female') ? 'block' : 'none';
+      }
+    }
+
+    // Dynamic Diet & Meal Plan Generator
+    function generateMealsPlan() {
+      const p = state.userProfile;
+      const targets = getICMRTargets();
+      const totalCal = targets.calories;
+      const totalProtein = targets.protein;
+      
+      const mealsCount = parseInt(p.mealsPerDay) || 4;
+      const diet = p.dietType || 'veg'; // veg, non-veg, vegan, eggetarian
+      const allergies = p.allergies || [];
+      
+      let mealTemplates = [];
+      if (mealsCount === 3) {
+        mealTemplates = [
+          { id: "meal1", time: "Breakfast", title: "", kcal: Math.round(totalCal * 0.3), protein: Math.round(totalProtein * 0.3), carbs: Math.round(totalCal * 0.3 * 0.55 / 4), fats: Math.round(totalCal * 0.3 * 0.25 / 9), desc: "" },
+          { id: "meal2", time: "Lunch", title: "", kcal: Math.round(totalCal * 0.4), protein: Math.round(totalProtein * 0.35), carbs: Math.round(totalCal * 0.4 * 0.55 / 4), fats: Math.round(totalCal * 0.4 * 0.25 / 9), desc: "" },
+          { id: "meal3", time: "Dinner", title: "", kcal: Math.round(totalCal * 0.3), protein: Math.round(totalProtein * 0.35), carbs: Math.round(totalCal * 0.3 * 0.55 / 4), fats: Math.round(totalCal * 0.3 * 0.25 / 9), desc: "" }
+        ];
+      } else if (mealsCount === 5) {
+        mealTemplates = [
+          { id: "meal1", time: "Breakfast", title: "", kcal: Math.round(totalCal * 0.2), protein: Math.round(totalProtein * 0.2), carbs: Math.round(totalCal * 0.2 * 0.55 / 4), fats: Math.round(totalCal * 0.2 * 0.25 / 9), desc: "" },
+          { id: "meal2", time: "Mid-Morning Snack", title: "", kcal: Math.round(totalCal * 0.15), protein: Math.round(totalProtein * 0.15), carbs: Math.round(totalCal * 0.15 * 0.55 / 4), fats: Math.round(totalCal * 0.15 * 0.25 / 9), desc: "" },
+          { id: "meal3", time: "Lunch", title: "", kcal: Math.round(totalCal * 0.3), protein: Math.round(totalProtein * 0.25), carbs: Math.round(totalCal * 0.3 * 0.55 / 4), fats: Math.round(totalCal * 0.3 * 0.25 / 9), desc: "" },
+          { id: "meal4", time: "Evening Snack", title: "", kcal: Math.round(totalCal * 0.15), protein: Math.round(totalProtein * 0.15), carbs: Math.round(totalCal * 0.15 * 0.55 / 4), fats: Math.round(totalCal * 0.15 * 0.25 / 9), desc: "" },
+          { id: "meal5", time: "Dinner", title: "", kcal: Math.round(totalCal * 0.2), protein: Math.round(totalProtein * 0.25), carbs: Math.round(totalCal * 0.2 * 0.55 / 4), fats: Math.round(totalCal * 0.2 * 0.25 / 9), desc: "" }
+        ];
+      } else { // 4 meals (default)
+        mealTemplates = [
+          { id: "meal1", time: "Breakfast", title: "", kcal: Math.round(totalCal * 0.25), protein: Math.round(totalProtein * 0.25), carbs: Math.round(totalCal * 0.25 * 0.55 / 4), fats: Math.round(totalCal * 0.25 * 0.25 / 9), desc: "" },
+          { id: "meal2", time: "Lunch", title: "", kcal: Math.round(totalCal * 0.35), protein: Math.round(totalProtein * 0.3), carbs: Math.round(totalCal * 0.35 * 0.55 / 4), fats: Math.round(totalCal * 0.35 * 0.25 / 9), desc: "" },
+          { id: "meal3", time: "Evening Snack", title: "", kcal: Math.round(totalCal * 0.15), protein: Math.round(totalProtein * 0.2), carbs: Math.round(totalCal * 0.15 * 0.55 / 4), fats: Math.round(totalCal * 0.15 * 0.25 / 9), desc: "" },
+          { id: "meal4", time: "Dinner", title: "", kcal: Math.round(totalCal * 0.25), protein: Math.round(totalProtein * 0.25), carbs: Math.round(totalCal * 0.25 * 0.55 / 4), fats: Math.round(totalCal * 0.25 * 0.25 / 9), desc: "" }
+        ];
+      }
+      
+      const hasLactose = allergies.includes('lactose');
+      const hasGluten = allergies.includes('gluten');
+      
+      mealTemplates.forEach((m) => {
+        if (m.time.includes("Breakfast")) {
+          if (diet === 'veg') {
+            m.title = hasLactose ? "Tofu Bhurji & Gluten-Free Toast" : "Paneer Bhurji & Oats Chilla";
+            m.desc = hasLactose ? "100g scrambled tofu cooked with vegetables + 2 slices gluten-free toast." : "100g low-fat paneer scrambled + 2 oats chillas cooked in minimal oil.";
+          } else if (diet === 'vegan') {
+            m.title = "Soya Milk Protein Shake & Oatmeal";
+            m.desc = "40g rolled oats cooked in water/soy milk with 1 scoop plant protein powder, topped with pumpkin seeds.";
+          } else if (diet === 'eggetarian') {
+            m.title = "Whole Egg Omelette & Fruit";
+            m.desc = "3 egg whites + 2 whole eggs scrambled with veggies, served with 1 orange or apple.";
+          } else {
+            m.title = "Egg Whites & Toast / Chicken Sausage";
+            m.desc = "4 egg whites scrambled, 2 slices toasted whole wheat bread, 2 grilled lean chicken sausages.";
+          }
+        } else if (m.time.includes("Lunch")) {
+          if (diet === 'veg' || diet === 'eggetarian') {
+            m.title = "Thick Dal, Chickpea Salad & Rice";
+            m.desc = "1.5 cups boiled chickpea salad with salad greens + 1 bowl yellow dal + 1 cup " + (hasGluten ? "rice." : "wheat roti / rice.");
+          } else if (diet === 'vegan') {
+            m.title = "Tofu Stir-fry with Quinoa";
+            m.desc = "120g grilled tofu blocks tossed with broccoli, bell peppers, and carrots. Served over 1 cup quinoa.";
+          } else {
+            m.title = "Grilled Chicken Breast & Rice";
+            m.desc = "120g grilled lean chicken breast seasoned with herbs + 1 cup brown rice + steamed broccoli.";
+          }
+        } else if (m.time.includes("Snack")) {
+          if (diet === 'veg' || diet === 'eggetarian') {
+            m.title = hasLactose ? "Sprouted Moong Salad" : "Sprouted Moong & Roasted Paneer";
+            m.desc = "100g boiled sprouts with cucumber, tomato, lemon juice + " + (hasLactose ? "roasted peanuts." : "50g roasted paneer cubes.");
+          } else if (diet === 'vegan') {
+            m.title = "Roasted Chana & Almonds";
+            m.desc = "50g dry roasted chana (Bengal gram) + 8-10 raw almonds.";
+          } else {
+            m.title = "Boiled Eggs / Chicken Wrap";
+            m.desc = "3 boiled egg whites OR 80g shredded chicken breast wrapped in a whole wheat tortilla.";
+          }
+        } else if (m.time.includes("Dinner")) {
+          if (diet === 'veg' || diet === 'eggetarian') {
+            m.title = "Rajma/Chole & Jeera Rice";
+            m.desc = "1.5 cups spiced kidney beans (Rajma) + 1 cup jeera rice + cucumber side salad.";
+          } else if (diet === 'vegan') {
+            m.title = "Lentil Stew & Baked Sweet Potato";
+            m.desc = "1.5 cups thick red lentil soup + 100g baked sweet potato wedges + green leafy salad.";
+          } else {
+            m.title = "Baked Fish Fillet & Quinoa";
+            m.desc = "120g baked fish (salmon/local white fish) + 1 cup quinoa + grilled asparagus side.";
+          }
+        } else {
+          m.title = "Nutrient-Dense Recovery Meal";
+          m.desc = "Balanced portion of protein, complex carbs, and green salad.";
+        }
+      });
+      
+      meals = mealTemplates;
+    }
+
+    // Submit Onboarding Form
+    async function handleOnboardingSubmit(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('onboard-name').value.trim();
+      const age = parseInt(document.getElementById('onboard-age').value);
+      const sex = document.getElementById('onboard-sex').value;
+      const weight = parseFloat(document.getElementById('onboard-weight').value);
+      const height = parseFloat(document.getElementById('onboard-height').value);
+      const targetWeight = parseFloat(document.getElementById('onboard-target-weight').value);
+      const targetOutcome = document.getElementById('onboard-target-outcome').value.trim();
+      const goal = document.getElementById('onboard-goal').value;
+      const activityLevel = document.getElementById('onboard-activity').value;
+      
+      const dietType = document.getElementById('onboard-diet-type').value;
+      const mealsPerDay = parseInt(document.getElementById('onboard-meals-count').value);
+      const proteinPreference = document.getElementById('onboard-protein-pref').value.trim();
+      
+      const allergies = [];
+      if (document.getElementById('allergy-lactose').checked) allergies.push('lactose');
+      if (document.getElementById('allergy-gluten').checked) allergies.push('gluten');
+      if (document.getElementById('allergy-nuts').checked) allergies.push('nuts');
+      
+      const equipment = document.getElementById('onboard-equipment').value;
+      const experience = document.getElementById('onboard-experience').value;
+      const splitPreference = document.getElementById('onboard-split-pref').value;
+      const injuries = document.getElementById('onboard-injuries').value.trim();
+      
+      const cycleSyncing = document.getElementById('onboard-cycle-sync').checked;
+      const lastPeriodDate = document.getElementById('onboard-period-start').value;
+      const cycleLength = parseInt(document.getElementById('onboard-cycle-len').value) || 28;
+      
+      const sleepHrs = parseFloat(document.getElementById('onboard-sleep').value) || 7.5;
+      const hrv = parseInt(document.getElementById('onboard-hrv').value) || 65;
+      
+      // Basic validation
+      if (!name || isNaN(age) || isNaN(weight) || isNaN(height) || isNaN(targetWeight) || !targetOutcome) {
+        showToast("Please fill in all required fields with valid inputs.", "warning");
+        return;
+      }
+      
+      // Update state userProfile
+      state.userProfile = {
+        name,
+        age,
+        sex,
+        weight,
+        height,
+        targetWeight,
+        targetOutcome,
+        goal,
+        activityLevel,
+        dietPreference: (dietType === 'veg' || dietType === 'vegan') ? 'veg' : 'non-veg',
+        dietType,
+        mealsPerDay,
+        proteinPreference,
+        allergies,
+        equipment,
+        experience,
+        splitPreference,
+        injuries,
+        cycleSyncing,
+        lastPeriodDate,
+        cycleLength,
+        sleepHrs,
+        hrv,
+        rhr: 58,
+        geminiApiKey: ""
+      };
+      
+      // Update weight history and PRs initially
+      state.weightHistory = [{ date: getTodayString(), weight: weight }];
+      state.isOnboarded = true;
+      
+      // Generate diet plan
+      generateMealsPlan();
+      
+      // Hide onboarding overlay
+      document.getElementById('onboarding-modal').style.display = 'none';
+      
+      // Run AI Workout Plan generation (this will show the loader and sync state)
+      await generateAiWorkout(false);
+      
+      // Sync weight logs as well
+      localStorage.setItem("shukan_weights", JSON.stringify([{ d: getTodayString(), w: weight }]));
+      
+      showToast("Profile onboarded successfully! Welcome to FitBharat.", "success");
+      
+      // Render everything
+      renderMeals();
+      renderAll();
+      renderTrackerAndDashboard();
+    }
+
     // Master data
     const defaultWorkouts = {
       mon: {
@@ -2913,7 +3327,7 @@
       }
     };
 
-    const meals = [
+    let meals = [
       { id: "meal1", time: "5:00 AM", title: "Banana + soaked almonds", kcal: 200, protein: 4, carbs: 40, fats: 5, desc: "2 bananas + 8–10 soaked almonds. Garlic slice with water." },
       { id: "meal2", time: "7:30 AM", title: "Paneer bhurji + roti + milk", kcal: 650, protein: 45, carbs: 70, fats: 20, desc: "100g paneer scrambled + 3 wheat rotis + 300ml full-fat milk." },
       { id: "meal3", time: "11:00 AM", title: "Curd (dahi) + chivda / poha", kcal: 350, protein: 15, carbs: 60, fats: 8, desc: "1 cup thick curd + 1 bowl poha or chivda." },
@@ -3016,11 +3430,7 @@
       workoutSets: {}, // { "mon_exerciseIndex_setIndex": boolean }
       checkedMeals: [], // [mealId]
       waterCount: 0,
-      weightHistory: [
-        { date: "2026-05-01", weight: 56.0 },
-        { date: "2026-05-15", weight: 57.2 },
-        { date: "2026-06-01", weight: 58.5 }
-      ],
+      weightHistory: [],
       currentMilestone: 1,
       routines: {}, // { "m1": boolean }
       timelineChecks: {}, // { "tc1": boolean }
@@ -3028,11 +3438,11 @@
       
       // --- SHUKAN CORE HIGH TECH STATE ADDITIONS ---
       userProfile: {
-        name: "Shukan",
-        age: 24,
-        height: 170,
-        weight: 56.0,
-        targetWeight: 70.0,
+        name: "",
+        age: "",
+        height: "",
+        weight: "",
+        targetWeight: "",
         sex: "male",
         activityLevel: "moderate",
         goal: "bulk",
@@ -3048,7 +3458,14 @@
         equipment: "Full Gym",
         experience: "Intermediate",
         splitPreference: "PPL",
-        injuries: ""
+        injuries: "",
+        
+        // New Diet & Goal questions
+        targetOutcome: "",
+        dietType: "veg",
+        allergies: [],
+        proteinPreference: "",
+        mealsPerDay: 4
       },
       gpPoints: 0,
       streak: 0,
@@ -3058,13 +3475,14 @@
       glucoseReadings: [], // array of { time, value }
       cgmMode: 'simulator',
       liftPRs: {
-        'Bench Press': 50,
-        'Squat': 60,
-        'Deadlift': 80,
-        'OHP': 30
+        'Bench Press': 0,
+        'Squat': 0,
+        'Deadlift': 0,
+        'OHP': 0
       },
       workouts: null,
-      currentWorkoutWeek: 1
+      currentWorkoutWeek: 1,
+      isOnboarded: false
     };
 
     // Chart registry to avoid canvas conflicts
@@ -5809,6 +6227,38 @@
 
     // Master render binder
     function renderAll() {
+      // Update Welcome greeting & custom target outcome
+      const welcomeEl = document.getElementById('dashboard-welcome');
+      const outcomeEl = document.getElementById('dashboard-outcome');
+      if (welcomeEl && state.userProfile && state.userProfile.name) {
+        welcomeEl.textContent = `Hello, ${state.userProfile.name}!`;
+      }
+      if (outcomeEl && state.userProfile && state.userProfile.targetOutcome) {
+        outcomeEl.innerHTML = `<i class="ti ti-target" style="color:var(--color-primary); font-size:14px;"></i> Goal: ${state.userProfile.targetOutcome}`;
+      } else if (outcomeEl) {
+        outcomeEl.innerHTML = `<i class="ti ti-target" style="color:var(--color-primary); font-size:14px;"></i> Let's crush your fitness goals!`;
+      }
+      
+      // Update initials profile badge in header
+      if (state.userProfile && state.userProfile.name) {
+        const parts = state.userProfile.name.trim().split(/\s+/);
+        let initials = "";
+        if (parts.length > 0 && parts[0]) {
+          initials = parts[0][0];
+          if (parts[1] && parts[1][0]) {
+            initials += parts[1][0];
+          } else {
+            initials = parts[0].substring(0, 2);
+          }
+        } else {
+          initials = "US";
+        }
+        const badge = document.querySelector('.profile-badge');
+        if (badge) {
+          badge.textContent = initials.toUpperCase();
+        }
+      }
+
       // Sunday Weekly Review card display logic
       const isSunday = new Date().getDay() === 0 || state.forceSundayReview;
       const sundayCard = document.getElementById('sunday-review-card');
@@ -5990,7 +6440,12 @@
         }
       } catch (err) {
         console.error(err);
-        showToast("AI generation failed. Please try again.", "warning");
+        showToast("AI generation failed. Using default workout split.", "warning");
+        if (!state.workouts) {
+          state.workouts = JSON.parse(JSON.stringify(defaultWorkouts));
+          saveState();
+          renderAll();
+        }
       } finally {
         if (loader) {
           loader.style.display = 'none';

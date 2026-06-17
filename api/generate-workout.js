@@ -13,7 +13,7 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: 'Missing userProfile in request body.' });
   }
 
-  const { age, height, weight, sex, activityLevel, goal, equipment, experience, splitPreference, injuries } = userProfile;
+  const { age, height, weight, sex, activityLevel, goal, targetOutcome, equipment, experience, splitPreference, injuries } = userProfile;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   
@@ -24,6 +24,7 @@ Generate a highly personalized 1-week gym workout plan for a user with the follo
 - Weight: ${weight} kg
 - Biological Sex: ${sex}
 - Goal: ${goal}
+- Target Outcome / What they want to achieve: ${targetOutcome || 'General Fitness'}
 - Activity Level: ${activityLevel}
 - Available Equipment: ${equipment || 'Full Gym'} (Options: Full Gym, Dumbbells Only, Bodyweight)
 - Training Experience: ${experience || 'Intermediate'} (Options: Beginner, Intermediate, Advanced)
