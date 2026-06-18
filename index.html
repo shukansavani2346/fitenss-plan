@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Shukan's Complete Fitness Plan</title>
+  <title>FitBharat - AI Fitness Planner</title>
+  
+  <!-- SEO & Social Meta Tags -->
+  <meta name="description" content="AI-powered fitness planner, workout tracker, and personalized diet generation app.">
+  <meta name="theme-color" content="#090a0f">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="FitBharat - AI Fitness Planner">
+  <meta property="og:description" content="Track your workouts, log body measurements, and generate personalized diets with AI.">
+  <meta property="og:url" content="https://fitbharat.app">
+  
+  <!-- PWA Settings -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,6 +76,17 @@
       --color-border-tertiary: var(--color-card-border);
       --border-radius-lg: var(--radius-lg);
       --border-radius-md: var(--radius-md);
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.5s infinite linear;
+      border-radius: 4px;
     }
 
     * {
@@ -1455,8 +1479,14 @@
 </head>
 <body>
 
+  <!-- App Loading Screen -->
+  <div id="app-loading-screen" class="modal-overlay" style="display: flex; z-index: 3000; background: var(--bg-primary); justify-content: center; align-items: center; flex-direction: column;">
+    <h2 style="font-size: 32px; font-weight: 800; background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Outfit'; letter-spacing: -0.5px; margin-bottom: 16px;"><i class="ti ti-flame"></i> FitBharat</h2>
+    <div class="spin-icon" style="font-size: 32px; color: var(--color-primary);"><i class="ti ti-loader"></i></div>
+  </div>
+
   <!-- Auth Modal Overlay -->
-  <div id="auth-modal" class="modal-overlay" style="display: flex; z-index: 2000; background: rgba(5, 6, 10, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);">
+  <div id="auth-modal" class="modal-overlay" style="display: none; z-index: 2000; background: rgba(5, 6, 10, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);">
     <div class="modal-content" style="max-height: 90vh; width: 100%; max-width: 400px; margin: auto;">
       <div style="text-align: center; margin-bottom: 24px;">
         <h2 style="font-size: 28px; font-weight: 800; background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; font-family: 'Outfit'; letter-spacing: -0.5px;"><i class="ti ti-flame"></i> FitBharat</h2>
@@ -1976,6 +2006,41 @@
           </div>
         </div>
 
+        <!-- Body Measurements Card -->
+        <div class="card">
+          <div class="card-title">Body Measurements (cm) <i class="ti ti-ruler-measure"></i></div>
+          <div class="grid-2" style="margin-bottom: 0; gap: 8px;">
+            <div class="form-group">
+              <label class="form-label" style="font-size: 10px;">Body Part</label>
+              <select id="tracker-measure-part" class="form-input" style="padding: 0 8px; font-size: 13px;">
+                <option value="Neck">Neck</option>
+                <option value="Shoulders">Shoulders</option>
+                <option value="Chest">Chest</option>
+                <option value="Biceps (L)">Biceps (L)</option>
+                <option value="Biceps (R)">Biceps (R)</option>
+                <option value="Waist">Waist</option>
+                <option value="Hips">Hips</option>
+                <option value="Thighs (L)">Thighs (L)</option>
+                <option value="Thighs (R)">Thighs (R)</option>
+                <option value="Calves (L)">Calves (L)</option>
+                <option value="Calves (R)">Calves (R)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-size: 10px;">Size (cm)</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="number" id="tracker-measure-val" class="form-input" step="0.5" placeholder="cm">
+                <button class="btn active-scale" style="flex: 0 0 50px; padding: 0;" onclick="saveMeasurementLog()"><i class="ti ti-plus"></i></button>
+              </div>
+            </div>
+          </div>
+          
+          <div style="font-size:12px; font-weight:600; color:var(--color-text-secondary); margin-bottom:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">Recent Measurements</div>
+          <div id="tracker-measure-list" style="max-height:150px; overflow-y:auto;">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
         <!-- Lift Tracker Card -->
         <div class="card">
           <div class="card-title">Lift Progress Tracker <i class="ti ti-barbell"></i></div>
@@ -2173,6 +2238,22 @@
               <span class="macro-val" id="diet-fats-lbl">0g</span>
             </div>
             <div class="bar-bg"><div id="diet-fats-bar" class="bar-fill" style="width:0%; background:var(--color-warning);"></div></div>
+          </div>
+
+          <div class="macro-bar" style="margin-bottom:16px;">
+            <div class="macro-info">
+              <span class="macro-label">Fiber (Goal: 30g)</span>
+              <span class="macro-val" id="macro-fiber">0g</span>
+            </div>
+            <div class="bar-bg"><div id="diet-fiber-bar" class="bar-fill" style="width:0%; background:#4ade80;"></div></div>
+          </div>
+
+          <div class="macro-bar" style="margin-bottom:16px;">
+            <div class="macro-info">
+              <span class="macro-label">Sodium (Goal: < 2300mg)</span>
+              <span class="macro-val" id="macro-sodium">0mg</span>
+            </div>
+            <div class="bar-bg"><div id="diet-sodium-bar" class="bar-fill" style="width:0%; background:#94a3b8;"></div></div>
           </div>
 
           <!-- Amino Acid Panel -->
@@ -2665,12 +2746,42 @@
         </div>
       </div>
 
+      <!-- Diet & Goal Details -->
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label class="form-label">Target Weight (kg)</label>
+          <input type="number" id="settings-target-weight" class="form-input" step="0.1" min="30" max="200">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Outcome</label>
+          <input type="text" id="settings-target-outcome" class="form-input" placeholder="e.g. Build muscle, lose 5kg, etc.">
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label class="form-label">Dietary Preference</label>
+          <select id="settings-diet" class="form-input">
+            <option value="veg">Vegetarian</option>
+            <option value="non-veg">Non-Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="keto">Keto</option>
+            <option value="paleo">Paleo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Meals Per Day</label>
+          <select id="settings-meals" class="form-input">
+            <option value="3" selected>3 Meals</option>
+            <option value="4">4 Meals</option>
+            <option value="5">5 Meals</option>
+          </select>
+        </div>
+      </div>
+
       <div class="form-group">
-        <label class="form-label">Dietary Preference</label>
-        <select id="settings-diet" class="form-input">
-          <option value="veg">Vegetarian (RDA Target +10% correction)</option>
-          <option value="non-veg">Non-Vegetarian</option>
-        </select>
+        <label class="form-label">Allergies / Exclusions</label>
+        <input type="text" id="settings-allergies" class="form-input" placeholder="e.g. Peanuts, lactose, or None">
       </div>
 
       <!-- Female Specific Cycle Syncing Options -->
@@ -2892,7 +3003,8 @@
         db.collection("users").doc(user.uid).set({
           state: state,
           weights: getWeightLogs(),
-          lifts: getLiftLogs()
+          lifts: getLiftLogs(),
+          bodyMeasurements: getBodyMeasurements()
         }).then(() => {
           console.log("Firestore synced successfully.");
         }).catch(err => {
@@ -2989,6 +3101,9 @@
           if (data.lifts) {
             localStorage.setItem(getStorageKey('lifts'), JSON.stringify(data.lifts));
           }
+          if (data.bodyMeasurements) {
+            localStorage.setItem(getStorageKey('bodyMeasurements'), JSON.stringify(data.bodyMeasurements));
+          }
           
           console.log("Loaded user data from Firestore.");
         } else {
@@ -2996,7 +3111,8 @@
           await docRef.set({
             state: state,
             weights: getWeightLogs(),
-            lifts: getLiftLogs()
+            lifts: getLiftLogs(),
+            bodyMeasurements: getBodyMeasurements()
           });
         }
       } catch (err) {
@@ -3135,7 +3251,7 @@
     }
 
     // Dynamic Diet & Meal Plan Generator
-    function generateMealsPlan() {
+    function generateMealsPlanFallback() {
       const p = state.userProfile;
       const targets = getICMRTargets();
       const totalCal = targets.calories;
@@ -3227,6 +3343,92 @@
       });
       
       meals = mealTemplates;
+    }
+
+    async function generateMealsPlan() {
+      if (!auth.currentUser) return generateMealsPlanFallback();
+      
+      const payload = {
+        userProfile: state.userProfile
+      };
+      
+      const btn = document.getElementById('btn-onboard-start');
+      if (btn) {
+        btn.innerHTML = `<i class="ti ti-loader spin-icon"></i> Generating AI Diet...`;
+        btn.disabled = true;
+      }
+      
+      const mealsContainer = document.getElementById('meals-list');
+      if (mealsContainer) {
+        let skeletonHtml = '';
+        for(let i=0; i<4; i++) {
+          skeletonHtml += `
+            <div class="checklist-item" style="display:flex; flex-direction:column; align-items:stretch; border:1px solid rgba(255,255,255,0.03); margin-bottom:12px;">
+              <div style="display:flex; align-items:center;">
+                <div class="chk-box skeleton" style="border:none; width:22px; height:22px;"></div>
+                <div class="checklist-label" style="flex:1;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="skeleton" style="height:16px; width:60px; margin-bottom:4px;"></div>
+                    <div class="skeleton" style="height:12px; width:50px;"></div>
+                  </div>
+                  <div class="skeleton" style="height:16px; width:120px; margin-bottom:4px;"></div>
+                  <div class="skeleton" style="height:10px; width:90%; margin-bottom:2px;"></div>
+                  <div class="skeleton" style="height:10px; width:70%;"></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        mealsContainer.innerHTML = skeletonHtml;
+      }
+
+      try {
+        const response = await fetch('/api/generate-diet', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await auth.currentUser.getIdToken()}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server returned status ${response.status}`);
+        }
+
+        const plan = await response.json();
+        
+        state.dietPlan = {
+          meals: plan.meals,
+          summary: plan.summary
+        };
+        
+        meals = plan.meals.map((m, idx) => ({
+          id: `meal${idx+1}`,
+          time: m.name,
+          title: m.items.map(i => i.name).join(' + '),
+          kcal: m.items.reduce((sum, i) => sum + i.kcal, 0),
+          protein: m.items.reduce((sum, i) => sum + i.protein, 0),
+          carbs: m.items.reduce((sum, i) => sum + i.carbs, 0),
+          fats: m.items.reduce((sum, i) => sum + i.fats, 0),
+          desc: m.items.map(i => `${i.amount} ${i.name}`).join(', ')
+        }));
+        
+        saveState();
+        renderMeals();
+        renderDashboard();
+      } catch (err) {
+        console.error("AI Diet Error:", err);
+        showToast("Failed to generate diet plan. Retrying with basic fallback...", "warning");
+        generateMealsPlanFallback();
+        renderMeals();
+        renderDashboard();
+      } finally {
+        if (btn) {
+          btn.innerHTML = `Let's Go! <i class="ti ti-arrow-right"></i>`;
+          btn.disabled = false;
+        }
+      }
     }
 
     // Submit Onboarding Form
@@ -3679,6 +3881,11 @@
       document.getElementById('settings-goal').value = p.goal;
       document.getElementById('settings-diet').value = p.dietPreference;
       
+      document.getElementById('settings-target-weight').value = p.targetWeight || '';
+      document.getElementById('settings-target-outcome').value = p.targetOutcome || '';
+      document.getElementById('settings-meals').value = p.mealsPerDay || '3';
+      document.getElementById('settings-allergies').value = p.allergies || '';
+      
       // AI workout options
       document.getElementById('settings-equipment').value = p.equipment || 'Full Gym';
       document.getElementById('settings-experience').value = p.experience || 'Intermediate';
@@ -3743,13 +3950,24 @@
 
     function toggleSet(day, exerciseIdx, setIdx) {
       const key = `${day}_${exerciseIdx}_${setIdx}`;
-      const isChecking = !state.workoutSets[key];
-      state.workoutSets[key] = isChecking;
+      const isDone = !!state.workoutSets[key];
       
-      if (isChecking) {
+      if (!isDone) {
+        // Gather values
+        const weightInput = document.getElementById(`input-weight-${key}`);
+        const repsInput = document.getElementById(`input-reps-${key}`);
+        const rirInput = document.getElementById(`input-rir-${key}`);
+        
+        const weight = parseFloat(weightInput?.value) || 0;
+        const reps = parseInt(repsInput?.value) || 0;
+        const rir = parseInt(rirInput?.value) || 0;
+        
+        state.workoutSets[key] = { weight, reps, rir };
         state.gpPoints += 5;
-        showToast("💪 Set completed! +5 GP", "success");
+        showToast("💪 Set logged! +5 GP", "success");
       } else {
+        // Untoggle
+        delete state.workoutSets[key];
         state.gpPoints = Math.max(0, state.gpPoints - 5);
       }
       
@@ -3758,7 +3976,8 @@
       updateIntakeProgress();
       checkAchievements();
       
-      document.getElementById('user-gp-pts').innerHTML = `<i class="ti ti-trophy"></i> ${state.gpPoints}`;
+      const userGpEl = document.getElementById('user-gp-pts');
+      if (userGpEl) userGpEl.innerHTML = `<i class="ti ti-trophy"></i> ${state.gpPoints}`;
     }
 
     function renderWorkoutExercises() {
@@ -3832,8 +4051,27 @@
       }
 
       let html = '';
+      
+      // Warm-up section
+      html += `
+        <details style="margin-bottom: 20px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background: rgba(0,0,0,0.2);">
+          <summary style="font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i class="ti ti-flame" style="color: var(--color-warning);"></i> Dynamic Warm-up (5 mins)
+          </summary>
+          <div style="padding-top: 12px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.5;">
+            <ul style="padding-left: 16px; margin: 0;">
+              <li>Arm Circles: 10 forward, 10 backward</li>
+              <li>Leg Swings: 10 each leg</li>
+              <li>Bodyweight Squats: 15 reps</li>
+              <li>High Knees: 30 seconds</li>
+            </ul>
+          </div>
+        </details>
+      `;
+
       let totalSets = 0;
       let completedSets = 0;
+      let inSuperset = false;
       
       workout.list.forEach((exOrig, exIdx) => {
         let ex = { ...exOrig };
@@ -3842,10 +4080,11 @@
         
         // 1. Recovery Autoregulation Adaptation
         if (isRecoveryLow) {
-          if (ex.name === "Flat Barbell Bench Press") { ex.name = "Chest Press (Machine)"; isAdapted = true; }
-          else if (ex.name === "Barbell Squat") { ex.name = "Leg Press (Machine)"; isAdapted = true; }
-          else if (ex.name === "Deadlift") { ex.name = "Seated Cable Row"; isAdapted = true; }
-          else if (ex.name === "Overhead Press (barbell or DB)") { ex.name = "Shoulder Press (Machine)"; isAdapted = true; }
+          const nameLower = ex.name.toLowerCase();
+          if (nameLower.includes("bench press") || nameLower.includes("chest press")) { ex.name = "Chest Press (Machine)"; isAdapted = true; }
+          else if (nameLower.includes("squat")) { ex.name = "Leg Press (Machine)"; isAdapted = true; }
+          else if (nameLower.includes("deadlift")) { ex.name = "Seated Cable Row"; isAdapted = true; }
+          else if (nameLower.includes("overhead press") || nameLower.includes("ohp")) { ex.name = "Shoulder Press (Machine)"; isAdapted = true; }
           
           if (isAdapted) {
             ex.sets = Math.max(1, ex.sets - 1); // Reduce volume by 1 set
@@ -3878,25 +4117,68 @@
         for (let i = 1; i <= ex.sets; i++) {
           totalSets++;
           const setKey = `${selectedWorkoutDay}_${exIdx}_${i}`;
-          const isDone = !!state.workoutSets[setKey];
+          const setData = state.workoutSets[setKey];
+          const isDone = !!setData;
           if (isDone) {
             completedSets++;
             setsCompleted++;
           }
           
+          const weightVal = setData?.weight || '';
+          let defaultReps = '';
+          if (typeof ex.reps === 'string') {
+            const match = ex.reps.match(/(\d+)/);
+            if (match) defaultReps = match[1];
+          } else if (typeof ex.reps === 'number') {
+            defaultReps = ex.reps;
+          }
+          
+          const repsVal = setData?.reps || defaultReps;
+          const rirVal = setData?.rir !== undefined ? setData.rir : '';
+
           setHtml += `
-            <div class="set-row ${isDone ? 'done' : ''} active-scale" onclick="toggleSet('${selectedWorkoutDay}', ${exIdx}, ${i})">
-              <span class="set-num">SET ${i}</span>
-              <span class="set-reps">${ex.reps} reps ${isRecoveryLow && isAdapted ? '(-10% load)' : ''}</span>
-              <div class="set-check"><i class="ti ti-check"></i></div>
+            <div class="set-row ${isDone ? 'done' : ''}" style="display:flex; flex-direction:column; gap:6px; cursor:default;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="set-num">SET ${i}</span>
+                <span class="set-reps" style="font-size:10px; color:var(--color-text-secondary);">Target: ${ex.reps} ${isRecoveryLow && isAdapted ? '(-10% load)' : ''}</span>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <input type="number" id="input-weight-${setKey}" class="calc-input" placeholder="kg" style="flex:1; height:32px; font-size:12px; padding:0 8px;" value="${weightVal}" ${isDone ? 'disabled' : ''}>
+                <input type="number" id="input-reps-${setKey}" class="calc-input" placeholder="reps" style="flex:1; height:32px; font-size:12px; padding:0 8px;" value="${repsVal}" ${isDone ? 'disabled' : ''}>
+                <input type="number" id="input-rir-${setKey}" class="calc-input" placeholder="RIR" style="flex:1; height:32px; font-size:12px; padding:0 8px;" value="${rirVal}" ${isDone ? 'disabled' : ''}>
+                <button aria-label="Toggle Set Completion" class="btn ${isDone ? 'btn-secondary' : ''} active-scale" style="flex:0 0 40px; padding:0; height:32px;" onclick="toggleSet('${selectedWorkoutDay}', ${exIdx}, ${i})">
+                  <i class="ti ${isDone ? 'ti-x' : 'ti-check'}"></i>
+                </button>
+              </div>
             </div>
           `;
         }
         
         const isExCompleted = (setsCompleted === ex.sets);
         
-        html += `
-          <div style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04);">
+        const isSuperset = ex.superset || ex.superset_id;
+        const prevSuperset = exIdx > 0 ? (workout.list[exIdx - 1].superset || workout.list[exIdx - 1].superset_id) : false;
+        const nextSuperset = exIdx < workout.list.length - 1 ? (workout.list[exIdx + 1].superset || workout.list[exIdx + 1].superset_id) : false;
+        
+        let wrapperStart = '';
+        let wrapperEnd = '';
+        
+        if (isSuperset && !inSuperset) {
+          inSuperset = true;
+          wrapperStart = `<div style="border-left: 2px solid var(--color-primary); padding-left: 12px; margin-left: 4px; margin-bottom: 20px; position: relative;">
+            <div style="position: absolute; top: -8px; left: -8px; background: var(--color-background); padding: 0 4px; font-size: 10px; color: var(--color-primary); font-weight: 600;">SUPERSET</div>`;
+        }
+        
+        if (!isSuperset && inSuperset) {
+          inSuperset = false;
+          wrapperEnd = `</div>`;
+        } else if (isSuperset && inSuperset && !nextSuperset) {
+          inSuperset = false;
+          wrapperEnd = `</div>`;
+        }
+
+        html += wrapperStart + `
+          <div style="margin-bottom: ${inSuperset ? '12px' : '20px'}; padding-bottom: 12px; border-bottom: ${inSuperset ? 'none' : '1px solid rgba(255, 255, 255, 0.04)'};">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; gap:8px;">
               <span style="font-size:13px; font-weight:600; color:${isExCompleted ? 'var(--color-success)' : 'var(--color-text-primary)'}; flex:1; display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
                 ${ex.name} ${badgesHtml}
@@ -3909,9 +4191,26 @@
             ${ex.cues ? `<p style="font-size:10px; color:var(--color-text-secondary); margin-bottom:8px; font-style:italic; line-height:1.2;">Cues: ${ex.cues}</p>` : ''}
             ${setHtml}
           </div>
-        `;
+        ` + wrapperEnd;
       });
       
+      // Cool-down section
+      html += `
+        <details style="margin-top: 10px; margin-bottom: 20px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; background: rgba(0,0,0,0.2);">
+          <summary style="font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i class="ti ti-snowflake" style="color: var(--color-primary);"></i> Cool-down (5 mins)
+          </summary>
+          <div style="padding-top: 12px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.5;">
+            <ul style="padding-left: 16px; margin: 0;">
+              <li>Light walking: 2-3 minutes</li>
+              <li>Static hamstring stretch: 30s each leg</li>
+              <li>Chest opener stretch: 30s</li>
+              <li>Deep breathing: 1 minute</li>
+            </ul>
+          </div>
+        </details>
+      `;
+
       listContainer.innerHTML = html;
       
       // Calculate workout progress
@@ -3950,22 +4249,45 @@
       let html = '';
       meals.forEach(meal => {
         const isChecked = state.checkedMeals.includes(meal.id);
+        const p = meal.portion || 1.0;
         html += `
-          <div class="checklist-item active-scale ${isChecked ? 'checked' : ''}" onclick="toggleMeal('${meal.id}')">
-            <div class="chk-box"><i class="ti ti-check"></i></div>
-            <div class="checklist-label">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--color-text-secondary); margin-bottom:4px; padding: 2px 6px;">${meal.time}</span>
-                <span style="font-size:11px; font-weight:600; color:var(--color-primary);">${meal.protein}g Protein</span>
+          <div class="checklist-item ${isChecked ? 'checked' : ''}" style="display:flex; flex-direction:column; align-items:stretch;" role="button" aria-pressed="${isChecked}" tabindex="0">
+            <div style="display:flex; align-items:center; cursor:pointer;" onclick="toggleMeal('${meal.id}')">
+              <div class="chk-box" aria-hidden="true"><i class="ti ti-check"></i></div>
+              <div class="checklist-label" style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span class="badge" style="background:rgba(255,255,255,0.05); color:var(--color-text-secondary); margin-bottom:4px; padding: 2px 6px;">${meal.time}</span>
+                  <span style="font-size:11px; font-weight:600; color:var(--color-primary);">${(meal.protein * p).toFixed(1)}g Protein</span>
+                </div>
+                <span style="font-weight:600; font-size:13px;">${meal.title}</span>
+                <p style="font-size:11px; margin-top:2px; line-height:1.4;">${meal.desc}</p>
               </div>
-              <span style="font-weight:600; font-size:13px;">${meal.title}</span>
-              <p style="font-size:11px; margin-top:2px; line-height:1.4;">${meal.desc}</p>
+            </div>
+            
+            <div class="meal-portion-control" style="display:flex; align-items:center; gap:8px; padding-top:8px; margin-top:8px; border-top:1px solid rgba(255,255,255,0.05);">
+              <span style="font-size:10px; color:var(--color-text-secondary); flex:0 0 65px;">Portion: ${p.toFixed(2)}x</span>
+              <input type="range" min="0.5" max="2.0" step="0.25" value="${p}" style="flex:1;" oninput="updateMealPortion('${meal.id}', parseFloat(this.value))">
+              <span style="font-size:10px; font-weight:600; color:var(--color-text-primary); flex:0 0 60px; text-align:right;">${(meal.kcal * p).toFixed(0)} kcal</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top: 4px; padding: 0 4px;">
+              <span style="font-size:9px; color:var(--color-text-muted);">Fiber: ${(meal.fiber ? meal.fiber * p : 0).toFixed(1)}g</span>
+              <span style="font-size:9px; color:var(--color-text-muted);">Sodium: ${(meal.sodium ? meal.sodium * p : 0).toFixed(0)}mg</span>
             </div>
           </div>
         `;
       });
       
       mealsContainer.innerHTML = html;
+    }
+
+    function updateMealPortion(mealId, portion) {
+      const meal = meals.find(m => m.id === mealId);
+      if (meal) {
+        meal.portion = portion;
+        renderMeals();
+        updateIntakeProgress();
+        saveState(); // Assume saving meals state somehow.
+      }
     }
 
     function getICMRTargets() {
@@ -4038,14 +4360,19 @@
       let kcal = 0;
       let carbs = 0;
       let fats = 0;
+      let fiber = 0;
+      let sodium = 0;
       
       state.checkedMeals.forEach(mealId => {
         const m = meals.find(x => x.id === mealId);
         if (m) {
-          protein += m.protein;
-          kcal += m.kcal;
-          carbs += m.carbs;
-          fats += m.fats;
+          const p = m.portion || 1.0;
+          protein += m.protein * p;
+          kcal += m.kcal * p;
+          carbs += m.carbs * p;
+          fats += m.fats * p;
+          fiber += (m.fiber || 0) * p;
+          sodium += (m.sodium || 0) * p;
         }
       });
       
@@ -4079,6 +4406,8 @@
           kcal += item.kcal;
           carbs += item.carbs;
           fats += item.fats;
+          fiber += item.fiber || 0;
+          sodium += item.sodium || 0;
           
           const nameLower = item.name.toLowerCase();
           if (nameLower.includes("rice") || nameLower.includes("roti") || nameLower.includes("wheat") || nameLower.includes("poha") || nameLower.includes("oats") || nameLower.includes("bread")) {
@@ -4093,6 +4422,12 @@
         }
       });
       
+      document.getElementById('macro-carbs').textContent = `${carbs.toFixed(0)}g`;
+      document.getElementById('macro-fats').textContent = `${fats.toFixed(0)}g`;
+      
+      const targetFiber = 30;
+      const targetSodium = 2300;
+      
       // Update values in UI
       document.getElementById('kcal-total-val').textContent = kcal;
       document.getElementById('protein-total-val').textContent = protein + 'g';
@@ -4103,9 +4438,15 @@
       const protLbl = document.querySelectorAll('.progress-text .lbl')[1];
       if (protLbl) protLbl.textContent = `/${targets.protein}g prot`;
       
-      document.getElementById('diet-protein-lbl').textContent = `${protein}g / ${targets.protein}g`;
-      document.getElementById('diet-carbs-lbl').textContent = `${carbs}g / ${targets.carbs}g`;
-      document.getElementById('diet-fats-lbl').textContent = `${fats}g / ${targets.fats}g`;
+      document.getElementById('diet-protein-lbl').textContent = `${protein.toFixed(0)}g / ${targets.protein}g`;
+      document.getElementById('diet-carbs-lbl').textContent = `${carbs.toFixed(0)}g / ${targets.carbs}g`;
+      document.getElementById('diet-fats-lbl').textContent = `${fats.toFixed(0)}g / ${targets.fats}g`;
+      
+      const fiberEl = document.getElementById('macro-fiber');
+      if (fiberEl) fiberEl.textContent = `${fiber.toFixed(1)}g / ${targetFiber}g`;
+      
+      const sodiumEl = document.getElementById('macro-sodium');
+      if (sodiumEl) sodiumEl.textContent = `${sodium.toFixed(0)}mg / <${targetSodium}mg`;
       
       // Update labels in other dashboard widgets
       const widgetCal = document.querySelectorAll('.stat-widget .value')[2];
@@ -4117,6 +4458,19 @@
       document.getElementById('diet-protein-bar').style.width = `${Math.min((protein/targets.protein)*100, 100)}%`;
       document.getElementById('diet-carbs-bar').style.width = `${Math.min((carbs/targets.carbs)*100, 100)}%`;
       document.getElementById('diet-fats-bar').style.width = `${Math.min((fats/targets.fats)*100, 100)}%`;
+      
+      const fiberBar = document.getElementById('diet-fiber-bar');
+      if (fiberBar) fiberBar.style.width = `${Math.min((fiber/targetFiber)*100, 100)}%`;
+      
+      const sodiumBar = document.getElementById('diet-sodium-bar');
+      if (sodiumBar) {
+        sodiumBar.style.width = `${Math.min((sodium/targetSodium)*100, 100)}%`;
+        if (sodium > targetSodium) {
+          sodiumBar.style.background = 'var(--color-danger)';
+        } else {
+          sodiumBar.style.background = '#94a3b8';
+        }
+      }
       
       // Radial progress ring dashoffset (Circumference = 2 * PI * 38 = 238.76)
       const circ = 238.76;
@@ -4235,7 +4589,22 @@
       p.sex = document.getElementById('settings-sex').value;
       p.activityLevel = document.getElementById('settings-activity').value;
       p.goal = document.getElementById('settings-goal').value;
+      
+      const oldDietPref = p.dietPreference;
+      const oldMeals = p.mealsPerDay;
+      const oldTargetWeight = p.targetWeight;
+      
       p.dietPreference = document.getElementById('settings-diet').value;
+      p.targetWeight = parseFloat(document.getElementById('settings-target-weight').value) || '';
+      p.targetOutcome = document.getElementById('settings-target-outcome').value;
+      p.mealsPerDay = document.getElementById('settings-meals').value;
+      p.allergies = document.getElementById('settings-allergies').value;
+      
+      const dietChanged = (
+        oldDietPref !== p.dietPreference ||
+        oldMeals !== p.mealsPerDay ||
+        oldTargetWeight !== p.targetWeight
+      );
       
       // AI workout options
       p.equipment = document.getElementById('settings-equipment').value;
@@ -4268,6 +4637,10 @@
         setTimeout(() => {
           showToast("Workout preferences updated! Click 'AI Generate' in the Workout tab to update your plan.", "info");
         }, 1000);
+      }
+      
+      if (dietChanged || !state.dietPlan) {
+        generateMealsPlan();
       }
       
       // Re-trigger all calculators
@@ -5885,6 +6258,20 @@
       return [];
     }
 
+    function getBodyMeasurements() {
+      const stored = localStorage.getItem(getStorageKey('bodyMeasurements'));
+      if (stored) {
+        try {
+          const arr = JSON.parse(stored);
+          if (Array.isArray(arr)) {
+            arr.sort((a, b) => new Date(a.d) - new Date(b.d));
+            return arr;
+          }
+        } catch(e) {}
+      }
+      return [];
+    }
+
     // Load Lift Logs
     function getLiftLogs() {
       const stored = localStorage.getItem(getStorageKey('lifts'));
@@ -5938,6 +6325,36 @@
         localStorage.setItem(getStorageKey('weights'), JSON.stringify(weights));
         renderTrackerAndDashboard();
         triggerDbSync();
+      }
+    }
+
+    function saveMeasurementLog() {
+      const part = document.getElementById('tracker-measure-part').value;
+      const valEl = document.getElementById('tracker-measure-val');
+      const val = parseFloat(valEl.value);
+      
+      if (!part || isNaN(val) || val <= 0) {
+        alert("Please enter a valid measurement.");
+        return;
+      }
+      
+      const measurements = getBodyMeasurements();
+      measurements.push({ d: getTodayString(), p: part, v: val, id: Date.now() });
+      localStorage.setItem(getStorageKey('bodyMeasurements'), JSON.stringify(measurements));
+      
+      triggerDbSync();
+      renderTrackerAndDashboard();
+      
+      valEl.value = '';
+    }
+
+    function deleteMeasurementLog(id) {
+      if (confirm(`Delete measurement?`)) {
+        let measurements = getBodyMeasurements();
+        measurements = measurements.filter(x => x.id !== id);
+        localStorage.setItem(getStorageKey('bodyMeasurements'), JSON.stringify(measurements));
+        triggerDbSync();
+        renderTrackerAndDashboard();
       }
     }
 
@@ -6105,6 +6522,35 @@
             `;
           });
           listContainer.innerHTML = listHtml;
+        }
+      }
+
+      // Render body measurements inside Tracker tab
+      const measureContainer = document.getElementById('tracker-measure-list');
+      if (measureContainer) {
+        const measurements = getBodyMeasurements();
+        const displayMeasures = [...measurements].reverse().slice(0, 10);
+        if (displayMeasures.length === 0) {
+          measureContainer.innerHTML = `<div style="padding:8px 0; color:var(--color-text-muted); font-size:12px;">No measurements logged yet.</div>`;
+        } else {
+          let listHtml = '';
+          displayMeasures.forEach(item => {
+            listHtml += `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                <div style="display:flex; flex-direction:column;">
+                  <span style="font-size:13px; color:var(--color-text-primary); font-weight:600;">${item.p}</span>
+                  <span style="font-size:11px; color:var(--color-text-secondary);">${item.d}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:13px; font-weight:600; color:var(--color-text-primary);">${item.v.toFixed(1)} cm</span>
+                  <button class="active-scale" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer; font-size:14px; padding:2px;" onclick="deleteMeasurementLog(${item.id})">
+                    <i class="ti ti-trash"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+          measureContainer.innerHTML = listHtml;
         }
       }
 
@@ -6666,7 +7112,9 @@
       auth.onAuthStateChanged(async (user) => {
         if (user) {
           await loadUserData(user);
+          document.getElementById('app-loading-screen').style.display = 'none';
         } else {
+          document.getElementById('app-loading-screen').style.display = 'none';
           // Show auth overlay
           document.getElementById('auth-modal').style.display = 'flex';
           // Ensure inputs are reset

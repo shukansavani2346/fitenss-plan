@@ -1,0 +1,21 @@
+{
+  "name": "FitBharat - AI Fitness Planner",
+  "short_name": "FitBharat",
+  "description": "AI-powered fitness planner, workout tracker, and personalized diet generation app.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
