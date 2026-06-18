@@ -2909,6 +2909,38 @@
       return `fitbharat_${baseName}_${user.uid}`;
     }
 
+    function sanitize(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function sanitizeForPrompt(str) {
+      if (str === null || str === undefined) return '';
+      let cleaned = String(str);
+      
+      const overrides = [
+        /ignore\s+previous\s+instructions/gi,
+        /system:/gi,
+        /you\s+are\s+now/gi
+      ];
+      overrides.forEach(regex => {
+        cleaned = cleaned.replace(regex, '');
+      });
+      
+      cleaned = cleaned.replace(/[\r\n\x00-\x1F\x7F]/g, '');
+      
+      if (cleaned.length > 500) {
+        cleaned = cleaned.substring(0, 500);
+      }
+      
+      return cleaned;
+    }
+
     // Load User Data from Firestore
     async function loadUserData(user) {
       document.getElementById('user-email-display').textContent = user.email;
@@ -4534,7 +4566,7 @@
           html += `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03); font-size:12px;">
               <div style="flex:1;">
-                <b style="color:var(--color-text-primary);">${item.name}</b>
+                <b style="color:var(--color-text-primary);">${sanitize(item.name)}</b>
                 <p style="font-size:10px; color:var(--color-text-muted);">${item.qty}g — ${item.kcal} cal | ${item.protein}g P | ${item.carbs}g C | ${item.fats}g F</p>
               </div>
               <button class="active-scale" style="background:transparent; border:none; color:var(--color-danger); cursor:pointer;" onclick="deleteCustomMeal(${idx})">
@@ -4591,13 +4623,13 @@
         const parsed = JSON.parse(cleanJson);
         
         // Show in modal
-        document.getElementById('ai-food-name').value = parsed.food_name;
-        document.getElementById('ai-food-portion').value = parsed.portion_est;
+        document.getElementById('ai-food-name').value = sanitize(parsed.food_name);
+        document.getElementById('ai-food-portion').value = sanitize(parsed.portion_est);
         document.getElementById('ai-food-kcal').value = parsed.kcal;
         document.getElementById('ai-food-protein').value = parsed.protein_g;
         document.getElementById('ai-food-carbs').value = parsed.carbs_g;
         document.getElementById('ai-food-fats').value = parsed.fat_g;
-        document.getElementById('ai-food-reasoning').textContent = parsed.reasoning;
+        document.getElementById('ai-food-reasoning').textContent = sanitize(parsed.reasoning);
         
         openFoodResultsModal();
       } catch (err) {
@@ -4766,6 +4798,8 @@
       showToast("Parsing voice log with Gemini...", "info");
       const url = `/api/parse-voice`;
       
+      const sanitizedTextVal = sanitizeForPrompt(textVal);
+      
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -4773,7 +4807,7 @@
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${await auth.currentUser.getIdToken()}`
           },
-          body: JSON.stringify({ textVal })
+          body: JSON.stringify({ textVal: sanitizedTextVal })
         });
         
         if (!response.ok) {
@@ -4787,7 +4821,7 @@
         
         parsedArray.forEach(item => {
           const newMeal = {
-            name: `${item.food_name} (Voice Log)`,
+            name: `${sanitize(item.food_name)} (Voice Log)`,
             qty: 100,
             kcal: item.kcal,
             protein: item.protein_g,
@@ -6377,10 +6411,10 @@
       const welcomeEl = document.getElementById('dashboard-welcome');
       const outcomeEl = document.getElementById('dashboard-outcome');
       if (welcomeEl && state.userProfile && state.userProfile.name) {
-        welcomeEl.textContent = `Hello, ${state.userProfile.name}!`;
+        welcomeEl.textContent = `Hello, ${sanitize(state.userProfile.name)}!`;
       }
       if (outcomeEl && state.userProfile && state.userProfile.targetOutcome) {
-        outcomeEl.innerHTML = `<i class="ti ti-target" style="color:var(--color-primary); font-size:14px;"></i> Goal: ${state.userProfile.targetOutcome}`;
+        outcomeEl.innerHTML = `<i class="ti ti-target" style="color:var(--color-primary); font-size:14px;"></i> Goal: ${sanitize(state.userProfile.targetOutcome)}`;
       } else if (outcomeEl) {
         outcomeEl.innerHTML = `<i class="ti ti-target" style="color:var(--color-primary); font-size:14px;"></i> Let's crush your fitness goals!`;
       }
@@ -6530,8 +6564,16 @@
         loadSubtitle.textContent = isWeeklyUpdate ? "Gemini is analyzing fatigue, soreness, and overload to adapt exercises." : "Gemini is designing a custom science-backed workout plan based on your profile.";
       }
       
+      const sanitizedProfile = { ...state.userProfile };
+      if (sanitizedProfile.targetOutcome) {
+        sanitizedProfile.targetOutcome = sanitizeForPrompt(sanitizedProfile.targetOutcome);
+      }
+      if (sanitizedProfile.injuries) {
+        sanitizedProfile.injuries = sanitizeForPrompt(sanitizedProfile.injuries);
+      }
+
       const payload = {
-        userProfile: state.userProfile,
+        userProfile: sanitizedProfile,
         weekNumber: state.currentWorkoutWeek || 1
       };
       
