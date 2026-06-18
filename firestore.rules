@@ -2,7 +2,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      allow create: if request.auth != null && request.auth.uid == userId
+                    && request.resource.size < 100000
+                    && request.resource.data.keys().hasOnly(['state', 'weights', 'lifts', 'createdAt', 'updatedAt'])
+                    && request.resource.data.state is map
+                    && request.resource.data.weights is string
+                    && request.resource.data.lifts is string
+                    && request.resource.data.createdAt is timestamp
+                    && request.resource.data.createdAt == request.time
+                    && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is timestamp);
+                    
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && request.resource.size < 100000
+                    && request.resource.data.keys().hasOnly(['state', 'weights', 'lifts', 'createdAt', 'updatedAt'])
+                    && request.resource.data.state is map
+                    && request.resource.data.weights is string
+                    && request.resource.data.lifts is string
+                    && request.resource.data.updatedAt is timestamp
+                    && request.resource.data.updatedAt == request.time
+                    && request.resource.data.createdAt == resource.data.createdAt;
+                    
+      allow delete: if false;
+    }
+    
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
