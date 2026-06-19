@@ -3014,11 +3014,11 @@
     }
 
     function getStorageKey(baseName) {
-      const user = auth.currentUser;
-      if (!user) {
+      const uid = currentUid || (auth.currentUser ? auth.currentUser.uid : null);
+      if (!uid) {
         throw new Error("No user is currently logged in.");
       }
-      return `fitbharat_${baseName}_${user.uid}`;
+      return `fitbharat_${baseName}_${uid}`;
     }
 
     function sanitize(str) {
@@ -3694,6 +3694,7 @@
     };
 
     // State Variables
+    let currentUid = null;
     let currentTab = 'overview';
     let selectedWorkoutDay = 'mon';
     let state = {
@@ -3789,6 +3790,7 @@
           if (parsed.liftPRs) state.liftPRs = { ...state.liftPRs, ...parsed.liftPRs };
           if (parsed.workouts) state.workouts = parsed.workouts;
           if (parsed.currentWorkoutWeek !== undefined) state.currentWorkoutWeek = parsed.currentWorkoutWeek;
+          if (parsed.isOnboarded !== undefined) state.isOnboarded = parsed.isOnboarded;
 
           // Reset daily checks if date changes
           if (parsed.date === getTodayString()) {
@@ -7110,19 +7112,26 @@
     // Startup & Auth Listener
     window.addEventListener('load', () => {
       auth.onAuthStateChanged(async (user) => {
-        if (user) {
-          await loadUserData(user);
+        try {
+          if (user) {
+            currentUid = user.uid;
+            await loadUserData(user);
+          } else {
+            currentUid = null;
+            // Show auth overlay
+            document.getElementById('auth-modal').style.display = 'flex';
+            // Ensure inputs are reset
+            document.getElementById('auth-login-email').value = '';
+            document.getElementById('auth-login-password').value = '';
+            document.getElementById('auth-signup-name').value = '';
+            document.getElementById('auth-signup-email').value = '';
+            document.getElementById('auth-signup-password').value = '';
+          }
+        } catch (err) {
+          console.error("Error in onAuthStateChanged:", err);
+          showToast("Error initializing application session.", "danger");
+        } finally {
           document.getElementById('app-loading-screen').style.display = 'none';
-        } else {
-          document.getElementById('app-loading-screen').style.display = 'none';
-          // Show auth overlay
-          document.getElementById('auth-modal').style.display = 'flex';
-          // Ensure inputs are reset
-          document.getElementById('auth-login-email').value = '';
-          document.getElementById('auth-login-password').value = '';
-          document.getElementById('auth-signup-name').value = '';
-          document.getElementById('auth-signup-email').value = '';
-          document.getElementById('auth-signup-password').value = '';
         }
       });
     });
