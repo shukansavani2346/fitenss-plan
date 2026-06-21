@@ -133,7 +133,7 @@ Return JSON ONLY in this exact format. Do not wrap in markdown or output any ext
     
     if (!geminiRes.ok) {
       const errorText = await geminiRes.text();
-      return response.status(geminiRes.status).json({ error: \`Gemini API returned error: \${errorText}\` });
+      return response.status(geminiRes.status).json({ error: `Gemini API returned error: ${errorText}` });
     }
     
     const data = await geminiRes.json();

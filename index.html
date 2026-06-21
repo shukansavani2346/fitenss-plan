@@ -2288,7 +2288,7 @@
 
         <!-- Interactive Meals Checklist -->
         <div class="card">
-          <div class="card-title">Full Day Meals <span class="badge badge-success" id="meals-checked-badge">0/6 Completed</span></div>
+          <div class="card-title">Full Day Meals <span class="badge badge-success" id="meals-checked-badge">0 Completed</span></div>
           
           <div id="meals-list">
             <!-- Dynamically populated to hook up macros -->
@@ -3416,13 +3416,13 @@
         
         saveState();
         renderMeals();
-        renderDashboard();
+        renderAll();
       } catch (err) {
         console.error("AI Diet Error:", err);
         showToast("Failed to generate diet plan. Retrying with basic fallback...", "warning");
         generateMealsPlanFallback();
         renderMeals();
-        renderDashboard();
+        renderAll();
       } finally {
         if (btn) {
           btn.innerHTML = `Let's Go! <i class="ti ti-arrow-right"></i>`;
@@ -4246,7 +4246,7 @@
     function renderMeals() {
       const mealsContainer = document.getElementById('meals-list');
       const badge = document.getElementById('meals-checked-badge');
-      badge.textContent = `${state.checkedMeals.length} / 6 Completed`;
+      badge.textContent = `${state.checkedMeals.length} / ${meals.length} Completed`;
       
       let html = '';
       meals.forEach(meal => {

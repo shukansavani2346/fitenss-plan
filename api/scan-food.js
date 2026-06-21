@@ -33,14 +33,14 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Request body size validation (max 50KB)
+  // Request body size validation (max 4.5MB)
   const contentLength = request.headers['content-length'];
-  if (contentLength && parseInt(contentLength, 10) > 50 * 1024) {
-    return response.status(413).json({ error: 'Request body exceeds 50KB limit.' });
+  if (contentLength && parseInt(contentLength, 10) > 4.5 * 1024 * 1024) {
+    return response.status(413).json({ error: 'Request body exceeds 4.5MB limit.' });
   }
   const bodyStr = request.body ? JSON.stringify(request.body) : '';
-  if (bodyStr && Buffer.byteLength(bodyStr, 'utf8') > 50 * 1024) {
-    return response.status(413).json({ error: 'Request body exceeds 50KB limit.' });
+  if (bodyStr && Buffer.byteLength(bodyStr, 'utf8') > 4.5 * 1024 * 1024) {
+    return response.status(413).json({ error: 'Request body exceeds 4.5MB limit.' });
   }
 
   // Firebase Auth ID token verification
