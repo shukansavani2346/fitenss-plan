@@ -55,14 +55,28 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    body {
+    html {
       background: radial-gradient(circle at top, #14162a 0%, #07080c 100%) fixed;
+    }
+
+    body {
+      background: transparent;
       color: var(--color-text-primary);
       font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
       display: flex;
       justify-content: center;
+    }
+
+    #bg-3d-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -2;
+      pointer-events: none;
     }
 
     /* Background Ambient Glows */

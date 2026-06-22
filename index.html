@@ -28,6 +28,8 @@
   
   <!-- Chart.js (Required for Growth Tracker) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- Three.js (Required for 3D WebGL Background) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   
   <!-- MediaPipe Pose for AI Form Correction -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -312,6 +314,9 @@
   <!-- Background Glowing Orbs -->
   <div class="bg-glow-1"></div>
   <div class="bg-glow-2"></div>
+
+  <!-- Fullscreen WebGL Canvas -->
+  <canvas id="bg-3d-canvas"></canvas>
 
   <div class="app-container">
     
@@ -1495,6 +1500,7 @@
   <script src="js/grocery.js"></script>
   <script src="js/skincare.js"></script>
   <script src="js/achievements.js"></script>
+  <script src="js/bg-3d.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
